@@ -1,4 +1,6 @@
-#include "RaylibWrapper.hpp"
+#include "raylibwrapper.hpp"
+#include "raylib.h"
+#include "rlgl.h"
 #include <cmath>
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
@@ -34,7 +36,7 @@ float RaylibWrapper::angle_between_points(float p1x, float p1y, float p2x,
 }
 
 void RaylibWrapper::render(
-    const std::vector<std::vector<cv::Point>> &contours) {
+    const std::vector<std::vector<cv::Point2d>> &contours) {
   BeginDrawing();
   ClearBackground(RAYWHITE);
 

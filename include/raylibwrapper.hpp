@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../include/raylib.h"
-#include "../include/rlgl.h"
 #include <opencv2/core.hpp>
 #include <vector>
+#include "raylib.h"
+#include "rlgl.h"
 
 class RaylibWrapper {
 private:
@@ -23,5 +23,5 @@ public:
 
   void init();
   void update_camera();
-  void render(const std::vector<std::vector<cv::Point>> &contours);
+  void render(const std::vector<std::vector<cv::Point2d>> &contours);
 };

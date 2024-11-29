@@ -31,8 +31,8 @@ void Img::remove_text() {
         }
     }
 
-    cv::imshow("Result", this->image);
-    cv::waitKey(0);
+    // cv::imshow("Result", this->image);
+    // cv::waitKey(0);
 }
 
 
@@ -41,8 +41,8 @@ void Img::display_image(){
     std::cout << "Could not read the image: " << std::endl;
 		exit(1);
   }
-	cv::imshow("Display",this->image);
-	cv::waitKey(0);
+	// cv::imshow("Display",this->image);
+	// cv::waitKey(0);
 }
 
 void Img::get_gray_image() {
@@ -50,15 +50,62 @@ void Img::get_gray_image() {
 	cv::threshold(this->image,this->image,160,255,cv::THRESH_BINARY);
 	cv::dilate(this->image,this->image,cv::Mat());
 	cv::dilate(this->image,this->image,cv::Mat());
+
+	// cv::imshow("Gray Image",this->image);
+	// cv::waitKey(0);
 }
 
-void Img::water_shed(std::vector<std::vector<cv::Point>>&contours) {
+void Img::water_shed(std::vector<std::vector<cv::Point2d>>&contours2d) {
 	cv::Mat thresh,gray;
 	this->denoise_image();
 	this->get_gray_image();
 	cv::Canny(this->image,thresh,100,200);
 	std::vector<cv::Vec4i> hierarchy;
+	std::vector<std::vector<cv::Point>>contours;
 	cv::findContours(thresh,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
-	cv::Mat countourImg(this->image.size(),CV_8UC3,cv::Scalar(0,0,0));
+
+	this->normalize(contours, contours2d);
 }
 
+void Img::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
+    contours2d.resize(contours.size());
+    int xMax, yMax, xMin, yMin;
+    xMax = yMax = 0;
+    xMin = yMin = INT_MAX;
+
+    for (auto& contour : contours) {
+        for (auto& P : contour) {
+            xMax = std::max(xMax, P.x);
+            yMax = std::max(yMax, P.y);
+            xMin = std::min(xMin, P.x);
+            yMin = std::min(yMin, P.y);
+        }
+    }
+
+    int deltaX = xMax - xMin;
+    int deltaY = yMax - yMin;
+
+    const int TARGET_SIZE = 100;
+
+    if (deltaX > deltaY) { // ALONG X
+        double scaleX = static_cast<double>(TARGET_SIZE) / deltaX;
+        
+        for (size_t i = 0; i < contours.size(); ++i) {
+            contours2d[i].resize(contours[i].size());
+            for (size_t j = 0; j < contours[i].size(); ++j) {
+                contours2d[i][j].x = (contours[i][j].x - xMin) * scaleX;
+                contours2d[i][j].y = (contours[i][j].y - yMin) * scaleX;
+            }
+        }
+    } else { // ALONG Y
+        double scaleY = static_cast<double>(TARGET_SIZE) / deltaY;
+        
+        for (size_t i = 0; i < contours.size(); ++i) {
+            contours2d[i].resize(contours[i].size());
+            for (size_t j = 0; j < contours[i].size(); ++j) {
+                contours2d[i][j].x = (contours[i][j].x - xMin) * scaleY;
+                contours2d[i][j].y = (contours[i][j].y - yMin) * scaleY;
+            }
+        }
+    }
+}

@@ -15,5 +15,6 @@ public:
   void denoise_image();
   void get_gray_image();
   void remove_text();
-  void water_shed(std::vector<std::vector<cv::Point>> &);
+  void water_shed(std::vector<std::vector<cv::Point2d>>&);
+  void normalize(std::vector<std::vector<cv::Point>>&, std::vector<std::vector<cv::Point2d>>&);
 };
