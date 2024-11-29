@@ -58,7 +58,7 @@ void RaylibWrapper::render(
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
       DrawCube({segment_distance / 2, 0.0f, 0.0f}, segment_distance, 6.0f, 0.1f,
-               colors[color_idx % 5]);
+               colors[0]);
       rlPopMatrix();
     }
     color_idx++;

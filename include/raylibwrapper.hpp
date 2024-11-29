@@ -9,7 +9,7 @@ class RaylibWrapper {
 private:
   Camera3D camera;
   int camera_mode;
-  Color colors[5] = {RED, PINK, ORANGE, DARKBLUE, GREEN};
+  Color colors[5] = {DARKGRAY, PINK, ORANGE, DARKBLUE, GREEN};
   int window_width;
   int window_height;
   std::string window_title;
