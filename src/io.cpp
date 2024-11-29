@@ -7,7 +7,7 @@ CustImage IOHelper::read_image(std::string path) {
 
   if (image.empty()) {
 		std::cout<<path<<"\n";
-    std::cerr << "[ERROR] Image Not Found in Path!";
+    std::cerr << "[ERROR] CustImage Not Found in Path!";
     std::exit(1);
   }
     return CustImage(image);
