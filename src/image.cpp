@@ -1,15 +1,15 @@
 #include "../include/image.hpp"
 #include <opencv2/opencv.hpp>
 
-Img::Img(cv::Mat image) {
+CustImage::CustImage(cv::Mat image) {
 	this->image = image;
 }
 
-void Img::denoise_image(){
+void CustImage::denoise_image(){
 		cv::fastNlMeansDenoisingColored(this->image,this->image,15,15,7,21);
 }
 
-void Img::remove_text() {
+void CustImage::remove_text() {
     cv::Mat gray,thresh,close,dilate;
     cvtColor(this->image, gray, cv::COLOR_BGR2GRAY);
 
@@ -36,7 +36,7 @@ void Img::remove_text() {
 }
 
 
-void Img::display_image(){
+void CustImage::display_image(){
   if (this->image.empty()) {
     std::cout << "Could not read the image: " << std::endl;
 		exit(1);
@@ -45,7 +45,7 @@ void Img::display_image(){
 	// cv::waitKey(0);
 }
 
-void Img::get_gray_image() {
+void CustImage::get_gray_image() {
 	cv::cvtColor(this->image,this->image,cv::COLOR_BGR2GRAY);
 	cv::threshold(this->image,this->image,160,255,cv::THRESH_BINARY);
 	cv::dilate(this->image,this->image,cv::Mat());
@@ -55,7 +55,7 @@ void Img::get_gray_image() {
 	// cv::waitKey(0);
 }
 
-void Img::water_shed(std::vector<std::vector<cv::Point2d>>&contours2d) {
+void CustImage::water_shed(std::vector<std::vector<cv::Point2d>>&contours2d) {
 	cv::Mat thresh,gray;
 	this->denoise_image();
 	this->get_gray_image();
@@ -67,7 +67,7 @@ void Img::water_shed(std::vector<std::vector<cv::Point2d>>&contours2d) {
 	this->normalize(contours, contours2d);
 }
 
-void Img::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
+void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
     contours2d.resize(contours.size());
     int xMax, yMax, xMin, yMin;
     xMax = yMax = 0;
