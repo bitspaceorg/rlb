@@ -13,5 +13,6 @@ public:
 	//returns a image
 	void denoise_image();
 	void get_gray_image();
+	void remove_text();
 	void water_shed();
 };
