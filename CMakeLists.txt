@@ -15,5 +15,13 @@ link_directories(${OpenCV_LIB_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/include)
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
+
 add_executable(main main.cpp ${SOURCES})
-target_link_libraries( main ${OpenCV_LIBS} )
+target_link_libraries(main ${OpenCV_LIBS} )
+# Link the raylib static library
+target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/libraylib.a)
+
+if (APPLE)
+    target_link_libraries(main "-framework IOKit" "-framework Cocoa" "-framework OpenGL")
+endif()
+#
