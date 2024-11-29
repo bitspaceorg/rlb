@@ -50,6 +50,9 @@ void CustImage::get_gray_image() {
 	cv::threshold(this->image,this->image,160,255,cv::THRESH_BINARY);
 	cv::dilate(this->image,this->image,cv::Mat());
 	cv::dilate(this->image,this->image,cv::Mat());
+
+	// cv::imshow("Gray Image",this->image);
+	// cv::waitKey(0);
 }
 
 void CustImage::water_shed(std::vector<std::vector<cv::Point2d>>&contours2d) {
