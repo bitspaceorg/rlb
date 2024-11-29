@@ -54,27 +54,18 @@ void Image::get_gray_image() {
 	cv::imshow("Gray Image",this->image);
 	cv::waitKey(0);
 }
-void Image::water_shed(){
+void Image::water_shed(std::vector<std::vector<cv::Point>>&contours) {
 	cv::Mat thresh,gray;
 	this->denoise_image();
 	this->get_gray_image();
-	// cv::GaussianBlur(this->image,this->image,cv::Size(5,5),0);
 	cv::Canny(this->image,thresh,100,200);
-
-	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	//
 	cv::findContours(thresh,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
 	cv::Mat countourImage(this->image.size(),CV_8UC3,cv::Scalar(0,0,0));
 	cv::Scalar color[3];
 	color[0] = cv::Scalar(255,0,0);
 	color[1] = cv::Scalar(0,255,0);
 	color[2] = cv::Scalar(0,0,255);
-	for (int i=0;i<contours.size();i++) {
-		std::cout<< contours[i] << std::endl;
-		cv::drawContours(countourImage,contours,i,color[i%3]);
-	}
-	cv::imshow("Display",countourImage);
 	cv::waitKey(0);
 }
 
