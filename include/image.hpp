@@ -3,11 +3,11 @@
 #include<opencv2/opencv.hpp>
 #include <opencv2/photo.hpp>
 
-class Image {
+class CustImage{
 private:
 	cv::Mat image;
 public:
-	Image(cv::Mat);
+	CustImage(cv::Mat);
 	void display_image();
 
 	//returns a image

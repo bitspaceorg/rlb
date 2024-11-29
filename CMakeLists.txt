@@ -13,13 +13,21 @@ link_directories(${OpenCV_LIB_DIR})
 
 #custom
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/include)
+
+
+
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB IMGUI_SOURCES ${CMAKE_SOURCE_DIR}/src/imgui/*.cpp)
 
 
-add_executable(main main.cpp ${SOURCES})
+add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES})
+
+
 target_link_libraries(main ${OpenCV_LIBS} )
 # Link the raylib static library
 target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/libraylib.a)
+target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/libglfw3.a)
 
 if (APPLE)
     target_link_libraries(main "-framework IOKit" "-framework Cocoa" "-framework OpenGL")

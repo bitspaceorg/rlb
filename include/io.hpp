@@ -7,5 +7,5 @@ using namespace cv;
 
 class IOHelper {
 public:
-  Image read_image(std::string);
+  CustImage read_image(std::string);
 };
