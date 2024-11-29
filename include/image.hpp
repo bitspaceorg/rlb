@@ -3,17 +3,16 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/photo.hpp>
 
-class Img {
+class CustImage{
 private:
-  cv::Mat image;
-
+	cv::Mat image;
 public:
-  Img(cv::Mat);
-  void display_image();
-
+	CustImage(cv::Mat);
+	void display_image();
   // returns a image
   void denoise_image();
   void get_gray_image();
   void remove_text();
-  void water_shed(std::vector<std::vector<cv::Point>> &);
+  void water_shed(std::vector<std::vector<cv::Point2d>>&);
+  void normalize(std::vector<std::vector<cv::Point>>&, std::vector<std::vector<cv::Point2d>>&);
 };
