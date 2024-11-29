@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/photo.hpp>
 
-class CustImage {
+class CustImage{
 private:
 	cv::Mat image;
 public:
