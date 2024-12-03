@@ -47,19 +47,35 @@ void CustImage::display_image(){
 
 void CustImage::get_gray_image() {
 	cv::cvtColor(this->image,this->image,cv::COLOR_BGR2GRAY);
-	cv::threshold(this->image,this->image,160,255,cv::THRESH_BINARY);
-	cv::dilate(this->image,this->image,cv::Mat());
-	cv::dilate(this->image,this->image,cv::Mat());
+    cv::threshold(this->image, this->image, 0, 255, cv::THRESH_BINARY_INV + cv::THRESH_OTSU);
+    cv::Mat kernel = cv::Mat::ones(3, 3, CV_8U);
+    cv::erode(this->image, this->image, kernel, cv::Point(-1, -1), 2);
+    cv::dilate(this->image, this->image, kernel, cv::Point(-1, -1), 2);
+    cv::Canny(this->image, this->image, 50, 150);
 
-	cv::imshow("Gray CustImage",this->image);
+	cv::imshow("Display",this->image);
 	cv::waitKey(0);
 }
 void CustImage::water_shed(std::vector<std::vector<cv::Point>>&contours) {
 	cv::Mat thresh,gray;
 	this->denoise_image();
 	this->get_gray_image();
-	cv::Canny(this->image,thresh,100,200);
 	std::vector<cv::Vec4i> hierarchy;
-	cv::findContours(thresh,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+	cv::findContours(this->image,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+
+	//visualization
+	// cv::Mat colorOutput = cv::Mat::zeros(this->image.size(), CV_8UC3);
+	// std::cout<<contours.size()<<std::endl;
+	// std::srand(time(nullptr));
+ //    for (size_t i = 0; i < contours.size(); i++) {
+ //        cv::Scalar color(
+ //        	rand()%255,
+ //        	rand()%255,
+ //        	rand()%255
+ //        );
+ //        cv::drawContours(colorOutput, contours, i, color, 2);
+ //    }
+	// cv::imshow("Display",colorOutput);
+	// cv::waitKey(0);
 }
 
