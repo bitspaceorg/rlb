@@ -5,9 +5,16 @@
 #include "raylib.h"
 #include "rlgl.h"
 
+
+#if defined(PLATFORM_DESKTOP)
+    #define GLSL_VERSION            330
+#else   // PLATFORM_ANDROID, PLATFORM_WEB
+    #define GLSL_VERSION            100
+#endif
+
+
 class RaylibWrapper {
 private:
-  Camera3D camera;
   int camera_mode;
   int window_width;
   int window_height;
@@ -18,6 +25,7 @@ private:
   float cross(const cv::Point2d &O, const cv::Point2d &A, const cv::Point2d &B);
 
 public:
+  Camera3D camera;
   RaylibWrapper(int width, int height, const std::string &title);
   ~RaylibWrapper();
 
