@@ -9,14 +9,20 @@
 
 int main() {
   SetConfigFlags(FLAG_MSAA_4X_HINT);  
-  std::string image_path = "/Users/suryaprakash/Developer/sih/rlb/test.jpeg";
+  std::string image_path = "/home/naviprem/dev/sih/rlb/test.jpeg";
   IOHelper *io = new IOHelper();
   auto img = io->read_image(image_path);
-  std::vector<std::vector<cv::Point2d>> contours;
+  std::vector<std::vector<cv::Point>> contours;
   img.water_shed(contours);
 
-  for (auto x : contours) {
-    std::cout << x << "\n";
+  std::vector<std::vector<cv::Point2d>> ncontours;
+  ncontours.resize(contours.size());
+
+  for (int i = 0; i < contours.size(); i ++) {
+      ncontours[i].resize(contours[i].size());
+      for (int j = 0; j < contours[i].size(); j ++) {
+          ncontours[i][j] = contours[i][j];
+      }
   }
 
   RaylibWrapper viewer(800, 600, "3D Room Viewer");
@@ -49,7 +55,7 @@ int main() {
 
     BeginMode3D(viewer.get_camera());
 		BeginShaderMode(shader);
-			viewer.render(contours, viewer.colors[5]);
+			viewer.render(ncontours, viewer.colors[5]);
 			viewer.render_base(boundary, 0.0f, viewer.colors[5]);
 		EndShaderMode();
     EndMode3D();

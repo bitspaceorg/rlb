@@ -56,27 +56,13 @@ void CustImage::get_gray_image() {
 	cv::imshow("Display",this->image);
 	cv::waitKey(0);
 }
+
 void CustImage::water_shed(std::vector<std::vector<cv::Point>>&contours) {
 	cv::Mat thresh,gray;
 	this->denoise_image();
 	this->get_gray_image();
 	std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(this->image,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
-
-	//visualization
-	// cv::Mat colorOutput = cv::Mat::zeros(this->image.size(), CV_8UC3);
-	// std::cout<<contours.size()<<std::endl;
-	// std::srand(time(nullptr));
- //    for (size_t i = 0; i < contours.size(); i++) {
- //        cv::Scalar color(
- //        	rand()%255,
- //        	rand()%255,
- //        	rand()%255
- //        );
- //        cv::drawContours(colorOutput, contours, i, color, 2);
- //    }
-	// cv::imshow("Display",colorOutput);
-	// cv::waitKey(0);
 }
 
 void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
