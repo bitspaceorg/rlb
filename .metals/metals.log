@@ -1,0 +1,8 @@
+2024.12.01 23:38:11 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/rahulnavneeth/projects/rlb-core/.metals/lsp.trace.json or /Users/rahulnavneeth/Library/Caches/org.scalameta.metals/lsp.trace.json[0m
+2024.12.01 23:38:12 INFO  logging to file /Users/rahulnavneeth/projects/rlb-core/.metals/metals.log[0m
+2024.12.01 23:38:12 INFO  Started: Metals version 0.11.2 in workspace '/Users/rahulnavneeth/projects/rlb-core' for client coc.nvim 0.0.82.[0m
+2024.12.01 23:38:12 INFO  Parse release: 1.8.0_361[0m
+2024.12.01 23:38:12 WARN  Can't instantiate JavaInteractiveSemanticdb (version: Some(JdkVersion(1,8)), jdkHome: /Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home, javac exists: false)[0m
+2024.12.01 23:38:13 INFO  time: initialize in 0.73s[0m
+2024.12.01 23:38:13 WARN  Build server is not auto-connectable.[0m
+2024.12.01 23:38:13 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/rlb-core'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m

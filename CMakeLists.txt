@@ -16,13 +16,19 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/include)
 
 
+<<<<<<< HEAD
 
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 file(GLOB IMGUI_SOURCES ${CMAKE_SOURCE_DIR}/src/imgui/*.cpp)
 
 
 add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES})
+=======
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+file(GLOB IMGUI_SOURCES ${CMAKE_SOURCE_DIR}/src/imgui/*.cpp)
+>>>>>>> main
 
+add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES} ${CMAKE_SOURCE_DIR}/include)
 
 target_link_libraries(main ${OpenCV_LIBS} )
 # Link the raylib static library

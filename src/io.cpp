@@ -1,5 +1,5 @@
-#include "../include/io.hpp"
-#include<iostream>
+#include "io.hpp"
+#include <iostream>
 
 //returns a image class
 CustImage IOHelper::read_image(std::string path) {
