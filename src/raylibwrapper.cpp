@@ -224,11 +224,6 @@ RaylibWrapper::get_closed_polygon(std::vector<cv::Point2d> &points) {
   if (points.size() < 3)
     return points;
 
-  std::sort(points.begin(), points.end(),
-            [](const cv::Point2d &a, const cv::Point2d &b) {
-              return (a.x < b.x) || (a.x == b.x && a.y < b.y);
-            });
-
   std::vector<cv::Point2d> polygon;
 
   for (const auto &p : points) {
