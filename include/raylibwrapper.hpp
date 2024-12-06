@@ -6,11 +6,6 @@
 #include <opencv2/core.hpp>
 #include <vector>
 
-#if defined(PLATFORM_DESKTOP)
-#define GLSL_VERSION 330
-#else // PLATFORM_ANDROID, PLATFORM_WEB
-#define GLSL_VERSION 100
-#endif
 
 class RaylibWrapper {
 private:
