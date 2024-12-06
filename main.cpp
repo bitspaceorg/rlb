@@ -17,6 +17,11 @@ int main() {
 
   RaylibWrapper viewer(800, 600, "3D Room Viewer");
   viewer.init();
+
+  rlEnableDepthTest();
+  rlEnableDepthMask();
+  rlSetBlendMode(BLEND_ALPHA);
+
   std::vector<cv::Point2d> input_2D;
   for (const auto &points : contours2d) {
     for (const auto &point : points) {
@@ -24,9 +29,11 @@ int main() {
     }
   }
 
-  std::vector<cv::Point2d> boundary = viewer.get_bounding_box(input_2D);
+  std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
+  Vector2dVector boundary;
+  for (Point2d i : boundary_ip)
+    boundary.push_back(Vector2d(i.x, i.y));
 
-  // #TODO: make relative path
   Shader shader = LoadShader(TextFormat("../shader/lighting.vs", GLSL_VERSION),
                              TextFormat("../shader/lighting.fs", GLSL_VERSION));
   shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
@@ -34,12 +41,13 @@ int main() {
   SetShaderValue(shader, ambientLoc, (float[4]){1.0f, 1.0f, 1.0f, 1.0f},
                  SHADER_UNIFORM_VEC4);
   Light light[2] = {0};
-  light[0] = CreateLight(LIGHT_POINT, (Vector3){-1, 3, -2}, Vector3Zero(),
-                         RED, shader);
+  light[0] = CreateLight(LIGHT_POINT, (Vector3){-1, 3, -2}, Vector3Zero(), RED,
+                         shader);
   light[1] = CreateLight(LIGHT_POINT, (Vector3){-1, 3, 45}, Vector3Zero(),
                          WHITE, shader);
 
-  /*light[1] = CreateLight(LIGHT_POINT, (Vector3){100, 3, 45}, (Vector3){0,0,10},*/
+  /*light[1] = CreateLight(LIGHT_POINT, (Vector3){100, 3, 45},
+   * (Vector3){0,0,10},*/
   /*                       WHITE, shader);*/
   while (!WindowShouldClose()) {
     viewer.update_camera();

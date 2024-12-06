@@ -1,6 +1,7 @@
 #include "raylibwrapper.hpp"
 #include "raylib.h"
 #include "rlgl.h"
+#include "triangulate.hpp"
 #include <cmath>
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
@@ -12,7 +13,6 @@ RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
   camera_mode = CAMERA_FREE;
-
 }
 
 RaylibWrapper::~RaylibWrapper() { CloseWindow(); }
@@ -22,9 +22,7 @@ void RaylibWrapper::init() {
   SetTargetFPS(60);
 }
 
-void RaylibWrapper::update_camera() { 
-	UpdateCamera(&camera, camera_mode); 
-}
+void RaylibWrapper::update_camera() { UpdateCamera(&camera, camera_mode); }
 
 float RaylibWrapper::distance(float x1, float y1, float x2, float y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -68,8 +66,12 @@ void RaylibWrapper::render(
     }
 
     // NOTE: Enable if all points are accurate enough (solid ceiling)
-     /*std::vector<cv::Point2d> points_ip = points;*/
-     /*render_base(get_closed_polygon(points_ip), 6.0f, RED);*/
+    Vector2dVector points_ip;
+    for (cv::Point2d point : points) {
+      points_ip.push_back(Vector2d(point.x, point.y));
+    }
+    // auto points_ip = points;
+    render_base(points_ip, 6.0f, WHITE);
     // render_base_lines(get_closed_polygon(points_ip), 6.0f, colors[0]);
   }
 }
@@ -90,29 +92,25 @@ void RaylibWrapper::render_base_lines(const std::vector<cv::Point2d> &contours,
              color);
 }
 
-void RaylibWrapper::render_base(const std::vector<cv::Point2d> &contours,
-                                float z, Color color) {
+void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
+                                Color color) {
+  Vector2dVector result;
+  Triangulate::Process(contours, result);
+  int tcount = result.size() / 3;
 
-  // NOTE: Remove if all the points are normalised to orgin from 0,0
-  z -= 3.0f;
+  y -= 3.0f;
 
-  Vector3 baseVertex = Vector3{static_cast<float>(contours[0].x), z,
-                               static_cast<float>(contours[0].y)};
-
-  for (int i = 1; i < contours.size() - 1; i++) {
-    DrawTriangle3D(baseVertex,
-                   Vector3{static_cast<float>(contours[i + 1].x), z,
-                           static_cast<float>(contours[i + 1].y)},
-                   Vector3{static_cast<float>(contours[i].x), z,
-                           static_cast<float>(contours[i].y)},
-                   color);
+  for (int i = 0; i < tcount; i++) {
+    Vector2d p1 = result[i * 3 + 0];
+    Vector2d p2 = result[i * 3 + 1];
+    Vector2d p3 = result[i * 3 + 2];
+    DrawTriangle3D(Vector3{p1.GetX(), y, p1.GetY()},
+                   Vector3{p3.GetX(), y, p3.GetY()},
+                   Vector3{p2.GetX(), y, p2.GetY()}, color);
+    // printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n", i +
+    // 1,
+    //        p1.GetX(), p1.GetY(), p2.GetX(), p2.GetY(), p3.GetX(), p3.GetY());
   }
-  DrawTriangle3D(baseVertex,
-                 Vector3{static_cast<float>(contours[0].x), z,
-                         static_cast<float>(contours[0].y)},
-                 Vector3{static_cast<float>(contours[contours.size() - 1].x), z,
-                         static_cast<float>(contours[contours.size() - 1].y)},
-                 color);
 }
 
 std::vector<cv::Point2d>
