@@ -30,6 +30,8 @@ int main() {
   }
 
   std::vector<cv::Point2d> boundary = viewer.get_bounding_box(input_2D);
+
+	//#TODO: make relative path
   Shader shader = LoadShader(TextFormat("/Users/suryaprakash/Developer/sih/rlb/shader/lighting.vs", GLSL_VERSION),
                                TextFormat("/Users/suryaprakash/Developer/sih/rlb/shader/lighting.fs", GLSL_VERSION));
 	shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader,"viewPos");
