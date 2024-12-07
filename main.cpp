@@ -4,7 +4,6 @@
 #include "io.hpp"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
-/*#define RLIGHTS_IMPLEMENTATION*/
 #include "lights.hpp"
 #include "raymath.h"
 
@@ -15,7 +14,7 @@ int main() {
 
   std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 
-  std::vector<std::string> image_path = {"../test.jpeg"};
+  std::vector<std::string> image_path = {"../test.jpeg", "../test5.jpeg"};
   for (std::string i : image_path) {
     IOHelper *io = new IOHelper();
     auto img = io->read_image(i);
@@ -122,7 +121,7 @@ int main() {
         boundary.push_back(Vector2d(i.x, i.y));
 
       viewer.render_base(boundary, offset, viewer.colors[0]);
-      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+      viewer.render(contours2d, offset, 5.8f, viewer.colors[0]);
     }
 
     EndShaderMode();
@@ -130,15 +129,13 @@ int main() {
     offset = 0.0f;
 
     for (const auto &floor : floors) {
-      offset += floor_height - 3.0f;
+      offset += floor_height;
       for (auto &contour : floor) {
         Vector2dVector points_ip;
         for (cv::Point2d point : contour) {
           points_ip.push_back(Vector2d(point.x, point.y));
         }
-        // for (auto &point : contour) {
-        viewer.render_base(points_ip, offset, viewer.colors[0]);
-        // }
+        viewer.render_base(points_ip, offset - 0.4, viewer.colors[0]);
       }
     }
 
@@ -154,7 +151,6 @@ int main() {
       DrawCircleV(centerScreen, 2.0f, RED);
     }
     EndShaderMode();
-
     EndDrawing();
   }
   light->DisableShader();
