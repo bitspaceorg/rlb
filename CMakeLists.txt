@@ -15,7 +15,7 @@ link_directories(${OpenCV_LIB_DIR})
 #custom
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/include)
-
+include_directories(${CMAKE_SOURCE_DIR}/include/imgui)
 
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 file(GLOB IMGUI_SOURCES ${CMAKE_SOURCE_DIR}/src/imgui/*.cpp)
