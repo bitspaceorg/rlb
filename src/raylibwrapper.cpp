@@ -287,3 +287,49 @@ RaylibWrapper::get_closed_polygon(std::vector<cv::Point2d> &points) {
 
   return polygon;
 }
+
+void RaylibWrapper::listen(RaylibWrapper &viewer) {
+    if (IsKeyPressed(KEY_C))
+      viewer.camera_index = ((viewer.camera_index + 1) % viewer.cameras.size());
+    if (IsKeyPressed(KEY_TAB))
+      viewer.cameras[viewer.camera_index].toggle_sniper_cam();
+}
+
+void RaylibWrapper::DrawFloor(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
+    float offset = 0.0f;
+
+    for (const auto &contours2d : floors) {
+
+      std::vector<cv::Point2d> input_2D;
+      for (const auto &points : contours2d) {
+        for (const auto &point : points) {
+          input_2D.push_back(point);
+        }
+      }
+
+      std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
+
+      Vector2dVector boundary;
+      for (cv::Point2d i : boundary_ip)
+        boundary.push_back(Vector2d(i.x, i.y));
+
+      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
+      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+    }
+}
+
+void RaylibWrapper::DrawCeil(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
+    const float floor_height = 6.0f;
+    float offset = 0.0f;
+
+    for (const auto &floor : floors) {
+      offset += floor_height;
+      for (auto &contour : floor) {
+        Vector2dVector points_ip;
+        for (cv::Point2d point : contour) {
+          points_ip.push_back(Vector2d(point.x, point.y));
+        }
+        viewer.render_base(points_ip, offset, viewer.colors[0]);
+      }
+    }
+}

@@ -11,7 +11,6 @@
 int main() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
-  const float floor_height = 6.0f;
 
   std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 
@@ -40,9 +39,6 @@ int main() {
   }
   std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
 
-  // camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-  // camera.target = (Vector3){2.5f, 0.0f, 2.5f};
-  //
   float sumX = 0, sumY = 0;
   for (const auto &point : boundary_ip) {
     std::cout << point.x << " " << point.y << "\n";
@@ -65,66 +61,29 @@ int main() {
                     CAMERA_PERSPECTIVE, CAMERA_CUSTOM);
 
   // lighting
-  LightLoader *light = new LightLoader(2, GLSL_VERSION);
-  light->ShaderInit();
-  light->InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
-  light->InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
+  LightLoader light = LightLoader(2, GLSL_VERSION);
+  light.ShaderInit();
+  light.InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
+  light.InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
 
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
                           viewer.get_camera().position.y,
                           viewer.get_camera().position.z};
 
-    if (IsKeyPressed(KEY_C))
-      viewer.camera_index = ((viewer.camera_index + 1) % viewer.cameras.size());
-    if (IsKeyPressed(KEY_TAB))
-      viewer.cameras[viewer.camera_index].toggle_sniper_cam();
+    RaylibWrapper::listen(viewer);
 
     BeginDrawing();
     ClearBackground(BLACK);
 
     viewer.update_camera();
-    light->UpdateLight(viewer.get_camera());
+    light.UpdateLight(viewer.get_camera());
 
     BeginMode3D(viewer.get_camera());
-    light->EnableShader();
-
-    float offset = 0.0f;
-
-    for (const auto &contours2d : floors) {
-
-      std::vector<cv::Point2d> input_2D;
-      for (const auto &points : contours2d) {
-        for (const auto &point : points) {
-          input_2D.push_back(point);
-        }
-      }
-
-      std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
-
-      Vector2dVector boundary;
-      for (Point2d i : boundary_ip)
-        boundary.push_back(Vector2d(i.x, i.y));
-
-      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
-      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
-    }
-
+    light.EnableShader();
+    RaylibWrapper::DrawFloor(viewer, floors);
     EndShaderMode();
-
-    offset = 0.0f;
-
-    for (const auto &floor : floors) {
-      offset += floor_height;
-      for (auto &contour : floor) {
-        Vector2dVector points_ip;
-        for (cv::Point2d point : contour) {
-          points_ip.push_back(Vector2d(point.x, point.y));
-        }
-        viewer.render_base(points_ip, offset, viewer.colors[0]);
-      }
-    }
-
+    RaylibWrapper::DrawCeil(viewer, floors);
     EndMode3D();
 
     vignette.EnableShader();
@@ -133,7 +92,7 @@ int main() {
 
     EndDrawing();
   }
-  light->DisableShader();
+  light.DisableShader();
 
   return 0;
 }

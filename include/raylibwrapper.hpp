@@ -27,6 +27,11 @@ public:
   int camera_index = 0;
 
   void init();
+
+  static void listen(RaylibWrapper &viewer);
+  static void DrawFloor(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+  static void DrawCeil(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+
   void update_camera();
   Camera3D &get_camera() { return cameras[camera_index].get_camera(); }
   int get_camera_mode() { return cameras[camera_index].get_camera_mode(); }
