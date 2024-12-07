@@ -81,7 +81,6 @@ void CustImage::water_shed(std::vector<std::vector<cv::Point>> &contours) {
   cv::waitKey(0);
 }
 
-
 void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
     contours2d.resize(contours.size());
     int xMax, yMax, xMin, yMin;
@@ -102,26 +101,39 @@ void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::ve
 
     const int TARGET_SIZE = 100;
 
-    if (deltaX > deltaY) { // ALONG X
-        double scaleX = static_cast<double>(TARGET_SIZE) / deltaX;
-        
-        for (size_t i = 0; i < contours.size(); ++i) {
-            contours2d[i].resize(contours[i].size());
-            for (size_t j = 0; j < contours[i].size(); ++j) {
-                contours2d[i][j].x = (contours[i][j].x - xMin) * scaleX;
-                contours2d[i][j].y = (contours[i][j].y - yMin) * scaleX;
-            }
+    double scale = (deltaX > deltaY)
+        ? static_cast<double>(TARGET_SIZE) / deltaX
+        : static_cast<double>(TARGET_SIZE) / deltaY;
+
+    std::vector<double> xValues, yValues;
+
+    for (size_t i = 0; i < contours.size(); ++i) {
+        contours2d[i].resize(contours[i].size());
+        for (size_t j = 0; j < contours[i].size(); ++j) {
+            contours2d[i][j].x = (contours[i][j].x - xMin) * scale;
+            contours2d[i][j].y = (contours[i][j].y - yMin) * scale;
+            xValues.push_back(contours2d[i][j].x);
+            yValues.push_back(contours2d[i][j].y);
         }
-    } else { // ALONG Y
-        double scaleY = static_cast<double>(TARGET_SIZE) / deltaY;
-        
-        for (size_t i = 0; i < contours.size(); ++i) {
-            contours2d[i].resize(contours[i].size());
-            for (size_t j = 0; j < contours[i].size(); ++j) {
-                contours2d[i][j].x = (contours[i][j].x - xMin) * scaleY;
-                contours2d[i][j].y = (contours[i][j].y - yMin) * scaleY;
-            }
+    }
+
+    auto computeMedian = [](std::vector<double>& values) -> double {
+        std::sort(values.begin(), values.end());
+        size_t size = values.size();
+        if (size % 2 == 0) {
+            return (values[size / 2 - 1] + values[size / 2]) / 2.0;
+        } else {
+            return values[size / 2];
+        }
+    };
+
+    double medianX = computeMedian(xValues);
+    double medianY = computeMedian(yValues);
+
+    for (size_t i = 0; i < contours2d.size(); ++i) {
+        for (size_t j = 0; j < contours2d[i].size(); ++j) {
+            contours2d[i][j].x -= medianX;
+            contours2d[i][j].y -= medianY;
         }
     }
 }
-

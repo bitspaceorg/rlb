@@ -66,12 +66,12 @@ void RaylibWrapper::render(
     }
 
     // NOTE: Enable if all points are accurate enough (solid ceiling)
-    Vector2dVector points_ip;
-    for (cv::Point2d point : points) {
-      points_ip.push_back(Vector2d(point.x, point.y));
-    }
+    // Vector2dVector points_ip;
+    // for (cv::Point2d point : points) {
+    //   points_ip.push_back(Vector2d(point.x, point.y));
+    // }
     // auto points_ip = points;
-    render_base(points_ip, 6.0f, WHITE);
+    // render_base(points_ip, 6.0f, WHITE);
     // render_base_lines(get_closed_polygon(points_ip), 6.0f, colors[0]);
   }
 }

@@ -1,5 +1,6 @@
 .cache/
 build/
+Vendor/libraylib.a
 cmake-build-debug/
 .idea/
 .DS_Store

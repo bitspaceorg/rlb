@@ -22,7 +22,7 @@ int main() {
   std::vector<std::vector<cv::Point>> contours;
   std::vector<std::vector<cv::Point2d>> contours2d;
   img.water_shed(contours);
-  img.normalize(contours, contours2d);
+  CustImage::normalize(contours, contours2d);
 
 
   RaylibWrapper viewer(800, 600, "3D Room Viewer");
@@ -63,13 +63,23 @@ int main() {
 
     viewer.render(contours2d, viewer.colors[5]);
     viewer.render_base(boundary, 0.0f, viewer.colors[5]);
-		
-		//debug light
-		//light->EnableDebug();
+    //debug light
+    //light->EnableDebug();
 
-	EndDrawing();
-	EndShaderMode();
-	EndMode3D();
+    EndShaderMode();
+
+    for (auto &contour: contours2d) {
+        Vector2dVector points_ip;
+        for (cv::Point2d point : contour) {
+          points_ip.push_back(Vector2d(point.x, point.y));
+        }
+        for (auto &point: contours2d) {
+            viewer.render_base(points_ip, 6.0, WHITE);
+        }
+    }
+
+    EndMode3D();
+    EndDrawing();
   }
 	//Destructors
 	light->DisableShader();
