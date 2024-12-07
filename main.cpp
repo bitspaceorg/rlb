@@ -120,8 +120,8 @@ int main() {
       for (Point2d i : boundary_ip)
         boundary.push_back(Vector2d(i.x, i.y));
 
-      viewer.render_base(boundary, offset, viewer.colors[0]);
-      viewer.render(contours2d, offset, 5.8f, viewer.colors[0]);
+      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
+      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
     }
 
     EndShaderMode();
@@ -135,7 +135,7 @@ int main() {
         for (cv::Point2d point : contour) {
           points_ip.push_back(Vector2d(point.x, point.y));
         }
-        viewer.render_base(points_ip, offset - 0.4, viewer.colors[0]);
+        viewer.render_base(points_ip, offset - 0.0, viewer.colors[0]);
       }
     }
 
