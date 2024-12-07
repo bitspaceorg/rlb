@@ -1,4 +1,5 @@
 #include "raylibwrapper.hpp"
+#include "camera.hpp"
 #include "raylib.h"
 #include "rlgl.h"
 #include "triangulate.hpp"
@@ -6,13 +7,13 @@
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
     : window_width(width), window_height(height), window_title(title) {
-  camera = {0};
-  camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-  camera.target = (Vector3){2.5f, 0.0f, 2.5f};
-  camera.up = (Vector3){0.0f, 1.0f, 0.0f};
-  camera.fovy = 45.0f;
-  camera.projection = CAMERA_PERSPECTIVE;
-  camera_mode = CAMERA_FREE;
+  // camera = {0};
+  // camera.position = (Vector3){10.0f, 10.0f, 10.0f};
+  // camera.target = (Vector3){2.5f, 0.0f, 2.5f};
+  // camera.up = (Vector3){0.0f, 1.0f, 0.0f};
+  // camera.fovy = 45.0f;
+  // camera.projection = CAMERA_PERSPECTIVE;
+  // camera_mode = CAMERA_FREE;
 }
 
 RaylibWrapper::~RaylibWrapper() { CloseWindow(); }
@@ -22,7 +23,17 @@ void RaylibWrapper::init() {
   SetTargetFPS(60);
 }
 
-void RaylibWrapper::update_camera() { UpdateCamera(&camera, camera_mode); }
+void RaylibWrapper::update_camera() {
+  Camera3D &camera = get_camera();
+  int mode = get_camera_mode();
+
+  UpdateCamera(&camera, mode);
+}
+
+void RaylibWrapper::add_camera(const Vector3 &position, const Vector3 &target,
+                               float initialFov, int projection, int mode) {
+  cameras.push_back(CameraRay(position, target, initialFov, projection, mode));
+}
 
 float RaylibWrapper::distance(float x1, float y1, float x2, float y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -42,7 +53,8 @@ float RaylibWrapper::angle_between_points(float p1x, float p1y, float p2x,
 }
 
 void RaylibWrapper::render(
-    const std::vector<std::vector<cv::Point2d>> &contours, Color color) {
+    const std::vector<std::vector<cv::Point2d>> &contours, float &offset,
+    const float &height, Color color) {
 
   for (const auto &points : contours) {
     for (size_t i = 0; i < points.size(); i++) {
@@ -52,15 +64,15 @@ void RaylibWrapper::render(
             y2 = points[(i + 1) % points.size()].y;
 
       float segment_distance = distance(x1, y1, x2, y2);
-      Vector3 v1 = {x1, 0.0f, y1}, v2 = {x2, 0.0f, y2};
+      Vector3 v1 = {x1, offset, y1}, v2 = {x2, offset, y2};
       float angle = angle_between_points(x1, y1, x2, y2);
 
       rlPushMatrix();
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
 
-      DrawCube({segment_distance / 2, 0.0f, 0.0f}, segment_distance, 6.0f, 0.1f,
-               color);
+      DrawCube({segment_distance / 2, 0.0f, 0.0f}, segment_distance, height,
+               0.1f, color);
 
       rlPopMatrix();
     }
@@ -74,6 +86,7 @@ void RaylibWrapper::render(
     // render_base(points_ip, 6.0f, WHITE);
     // render_base_lines(get_closed_polygon(points_ip), 6.0f, colors[0]);
   }
+  offset += height;
 }
 
 void RaylibWrapper::render_base_lines(const std::vector<cv::Point2d> &contours,
@@ -92,10 +105,22 @@ void RaylibWrapper::render_base_lines(const std::vector<cv::Point2d> &contours,
              color);
 }
 
+Vector2dVector preprocessContours(const Vector2dVector &contours) {
+  Vector2dVector cleanContours;
+  for (size_t i = 0; i < contours.size(); ++i) {
+    if (i == 0 || !(contours[i].GetX() == contours[i - 1].GetX() &&
+                    contours[i].GetY() == contours[i - 1].GetY())) {
+      cleanContours.push_back(contours[i]);
+    }
+  }
+  return cleanContours;
+}
+
 void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
                                 Color color) {
+  Vector2dVector preprocess_contours = preprocessContours(contours);
   Vector2dVector result;
-  Triangulate::Process(contours, result);
+  Triangulate::Process(preprocess_contours, result);
   int tcount = result.size() / 3;
 
   y -= 3.0f;
@@ -104,6 +129,10 @@ void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
     Vector2d p1 = result[i * 3 + 0];
     Vector2d p2 = result[i * 3 + 1];
     Vector2d p3 = result[i * 3 + 2];
+    if (p1.GetX() == p2.GetX() && p1.GetY() == p2.GetY() ||
+        p2.GetX() == p3.GetX() && p2.GetY() == p3.GetY() ||
+        p3.GetX() == p1.GetX() && p3.GetY() == p1.GetY())
+      continue;
     DrawTriangle3D(Vector3{p1.GetX(), y, p1.GetY()},
                    Vector3{p3.GetX(), y, p3.GetY()},
                    Vector3{p2.GetX(), y, p2.GetY()}, color);
@@ -111,6 +140,7 @@ void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
     // 1,
     //        p1.GetX(), p1.GetY(), p2.GetX(), p2.GetY(), p3.GetX(), p3.GetY());
   }
+  // printf("\n");
 }
 
 std::vector<cv::Point2d>
