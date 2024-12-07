@@ -66,7 +66,7 @@ int main() {
   // lighting
   LightLoader *light = new LightLoader(2, GLSL_VERSION);
   light->ShaderInit();
-  light->InitializeLights(0, (Vector3){-1, 3, -2}, Vector3Zero(), WHITE);
+  light->InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
   light->InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
 
   Shader vignette_shader = LoadShader(0, TextFormat("../shader/vignette.fs"));
@@ -99,8 +99,10 @@ int main() {
     ClearBackground(BLACK);
 
     viewer.update_camera();
+    light->UpdateLight(viewer.get_camera());
 
     BeginMode3D(viewer.get_camera());
+    light->EnableShader();
 
     float offset = 0.0f;
 
@@ -123,25 +125,20 @@ int main() {
       viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
     }
 
-    // for (int i = 0; i < MAX_LIGHTS; i++) {
-    //   if (light[i].enabled)
-    //     DrawSphereEx(light[i].position, 0.2f, 8, 8, light[i].color);
-    //   else
-    //     DrawSphereWires(light[i].position, 0.2f, 8, 8,
-    //                     ColorAlpha(light[i].color, 0.3f));
-    // }
-
     EndShaderMode();
 
+    offset = 0.0f;
+
     for (const auto &floor : floors) {
+      offset += floor_height - 3.0f;
       for (auto &contour : floor) {
         Vector2dVector points_ip;
         for (cv::Point2d point : contour) {
           points_ip.push_back(Vector2d(point.x, point.y));
         }
-        for (auto &point : contour) {
-          viewer.render_base(points_ip, 6.0, viewer.colors[0]);
-        }
+        // for (auto &point : contour) {
+        viewer.render_base(points_ip, offset, viewer.colors[0]);
+        // }
       }
     }
 
@@ -160,6 +157,7 @@ int main() {
 
     EndDrawing();
   }
-  // Destructors
+  light->DisableShader();
+
   return 0;
 }

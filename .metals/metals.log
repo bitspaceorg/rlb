@@ -13,3 +13,10 @@
 2024.12.06 13:13:48 INFO  time: initialize in 1.04s[0m
 2024.12.06 13:13:48 WARN  Build server is not auto-connectable.[0m
 2024.12.06 13:13:48 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/sih/main'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+2024.12.07 09:45:28 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/rahulnavneeth/projects/sih/main/.metals/lsp.trace.json or /Users/rahulnavneeth/Library/Caches/org.scalameta.metals/lsp.trace.json[0m
+2024.12.07 09:45:28 INFO  logging to file /Users/rahulnavneeth/projects/sih/main/.metals/metals.log[0m
+2024.12.07 09:45:28 INFO  Started: Metals version 0.11.2 in workspace '/Users/rahulnavneeth/projects/sih/main' for client coc.nvim 0.0.82.[0m
+2024.12.07 09:45:28 INFO  Parse release: 19.0.1[0m
+2024.12.07 09:45:29 INFO  time: initialize in 1.11s[0m
+2024.12.07 09:45:29 WARN  Build server is not auto-connectable.[0m
+2024.12.07 09:45:29 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/sih/main'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
