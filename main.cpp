@@ -4,6 +4,7 @@
 #include "io.hpp"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
+#include "vignette.hpp"
 #include "lights.hpp"
 #include "raymath.h"
 
@@ -50,6 +51,7 @@ int main() {
   }
 
   Vector2 center = Vector2{sumX / 4.0f, sumY / 4.0f};
+  Vignette vignette(width, height);
 
   // Free Flow
   viewer.add_camera(Vector3{10.0f, 10.0, 10.f}, Vector3{2.5f, 0.0f, 2.5f});
@@ -68,26 +70,10 @@ int main() {
   light->InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
   light->InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
 
-  Shader vignette_shader = LoadShader(0, TextFormat("../shader/vignette.fs"));
-
-  int rLoc = GetShaderLocation(vignette_shader, "radius");
-  int blurLoc = GetShaderLocation(vignette_shader, "blur");
-
-  int colLoc = GetShaderLocation(vignette_shader, "color");
-
-  float radius = 0.3f;
-  float blur = 0.0f;
-  Vector3 vColor = {0.0f, 0.0f, 0.0f};
-
-  RenderTexture2D vTexture = LoadRenderTexture(width, height);
-
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
                           viewer.get_camera().position.y,
                           viewer.get_camera().position.z};
-    SetShaderValue(vignette_shader, rLoc, &radius, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(vignette_shader, blurLoc, &blur, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(vignette_shader, colLoc, &vColor, SHADER_UNIFORM_VEC3);
 
     if (IsKeyPressed(KEY_C))
       viewer.camera_index = ((viewer.camera_index + 1) % viewer.cameras.size());
@@ -135,22 +121,16 @@ int main() {
         for (cv::Point2d point : contour) {
           points_ip.push_back(Vector2d(point.x, point.y));
         }
-        viewer.render_base(points_ip, offset - 0.0, viewer.colors[0]);
+        viewer.render_base(points_ip, offset, viewer.colors[0]);
       }
     }
 
     EndMode3D();
 
-    BeginShaderMode(vignette_shader);
-    if (!viewer.cameras[viewer.camera_index].is_toggle_sniper) {
-      DrawTextureRec(vTexture.texture,
-                     (Rectangle){0, 0, vTexture.texture.width * 1.0f,
-                                 -vTexture.texture.height * 1.0f},
-                     (Vector2){0, 0}, BLANK);
-      Vector2 centerScreen = {width / 2.0f, height / 2.0f};
-      DrawCircleV(centerScreen, 2.0f, RED);
-    }
-    EndShaderMode();
+    vignette.EnableShader();
+    vignette.Draw(!viewer.cameras[viewer.camera_index].is_toggle_sniper);
+    vignette.DisableShader();
+
     EndDrawing();
   }
   light->DisableShader();
