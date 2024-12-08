@@ -1,20 +1,20 @@
 // global shader declaration
 #define GLSL_VERSION 330
 
-#include "imgui.h"
 #include "io.hpp"
+#include "lights.hpp"
 #include "raylib.h"
-#include "rlImGui.h"
 #include "raylibwrapper.hpp"
+#include "raymath.h"
+#include "rlImGui.h"
 #include "toolbar.hpp"
 #include "vignette.hpp"
-#include "lights.hpp"
-#include "raymath.h"
 
 int main() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
+  const float floor_height = 6.0f;
   std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 
   std::vector<std::string> image_path = {"../test.jpeg", "../test5.jpeg"};
@@ -50,18 +50,11 @@ int main() {
   }
 
   Vector2 center = Vector2{sumX / 4.0f, sumY / 4.0f};
-  Vignette vignette(width, height);
 
-  // Free Flow
-  viewer.add_camera(Vector3{10.0f, 10.0, 10.f}, Vector3{2.5f, 0.0f, 2.5f});
-  // First Person
-  viewer.add_camera(Vector3{-1.0f, 0.0f, -2.0f}, Vector3{2.5f, 0.0f, 2.5f},
-                    45.0f, CAMERA_PERSPECTIVE, CAMERA_FIRST_PERSON);
-  // Top Down
-  // NOTE: to be changed - only for demo purposes
-  viewer.add_camera(Vector3{center.x, 80.0f, center.y},
-                    Vector3{center.x, -400.0f, center.x}, 45.0f,
-                    CAMERA_PERSPECTIVE, CAMERA_CUSTOM);
+  viewer.initialize_default_cam(center);
+  viewer.initialize_floor_cam(floor_height, floors.size());
+
+  Vignette vignette(width, height);
 
   // lighting
   LightLoader light = LightLoader(2, GLSL_VERSION);
@@ -76,7 +69,7 @@ int main() {
                           viewer.get_camera().position.y,
                           viewer.get_camera().position.z};
 
-    RaylibWrapper::listen(viewer);
+    RaylibWrapper::listen(viewer, floors.size());
 
     BeginDrawing();
     ClearBackground(BLACK);
@@ -88,15 +81,15 @@ int main() {
     light.EnableShader();
     RaylibWrapper::DrawFloor(viewer, floors);
     EndShaderMode();
-    RaylibWrapper::DrawCeil(viewer, floors);
+    RaylibWrapper::DrawCeil(viewer, floors, floor_height);
     EndMode3D();
 
     vignette.EnableShader();
     vignette.Draw(!viewer.cameras[viewer.camera_index].is_toggle_sniper);
     vignette.DisableShader();
 
-    rlImGuiBegin();	
-        Toolbar::render();
+    rlImGuiBegin();
+    Toolbar::render();
     rlImGuiEnd();
 
     EndDrawing();

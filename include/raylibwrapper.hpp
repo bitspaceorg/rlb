@@ -7,7 +7,6 @@
 #include <opencv2/core.hpp>
 #include <vector>
 
-
 class RaylibWrapper {
 private:
   int window_width;
@@ -28,9 +27,14 @@ public:
 
   void init();
 
-  static void listen(RaylibWrapper &viewer);
-  static void DrawFloor(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
-  static void DrawCeil(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+  static void listen(RaylibWrapper &viewer, const int &floor_count);
+  static void
+  DrawFloor(RaylibWrapper &viewer,
+            std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+  static void
+  DrawCeil(RaylibWrapper &viewer,
+           std::vector<std::vector<std::vector<cv::Point2d>>> &floors,
+           const float &floor_height);
 
   void update_camera();
   Camera3D &get_camera() { return cameras[camera_index].get_camera(); }
@@ -38,6 +42,9 @@ public:
   void add_camera(const Vector3 &position, const Vector3 &target,
                   float initialFov = 45.0f, int projection = CAMERA_PERSPECTIVE,
                   int mode = CAMERA_FREE);
+  void initialize_default_cam(const Vector2 &cente);
+  void initialize_floor_cam(const float &height, const int &floor_count);
+
   Color colors[6] = {DARKGRAY, PINK, ORANGE, DARKBLUE, GREEN, GRAY};
   void render(const std::vector<std::vector<cv::Point2d>> &contours,
               float &offset, const float &height, Color color);

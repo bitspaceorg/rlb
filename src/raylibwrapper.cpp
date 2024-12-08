@@ -4,6 +4,7 @@
 #include "rlgl.h"
 #include "triangulate.hpp"
 #include <cmath>
+#include <iostream>
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
     : window_width(width), window_height(height), window_title(title) {
@@ -33,6 +34,33 @@ void RaylibWrapper::update_camera() {
 void RaylibWrapper::add_camera(const Vector3 &position, const Vector3 &target,
                                float initialFov, int projection, int mode) {
   cameras.push_back(CameraRay(position, target, initialFov, projection, mode));
+}
+
+void RaylibWrapper::initialize_default_cam(const Vector2 &center) {
+  /* Free Flow */
+  add_camera(Vector3{10.0f, 10.0, 10.f}, Vector3{2.5f, 0.0f, 2.5f});
+
+  /*
+   * Top Down
+   * NOTE: to be changed - only for demo purposes
+   */
+  add_camera(Vector3{center.x, 80.0f, center.y},
+             Vector3{center.x, -400.0f, center.x}, 45.0f, CAMERA_PERSPECTIVE,
+             CAMERA_CUSTOM);
+}
+
+void RaylibWrapper::initialize_floor_cam(const float &height,
+                                         const int &floor_count) {
+  float offset = 0.0f;
+  for (int i = 0; i < floor_count; i++) {
+    /*
+     * First Person
+     * NOTE: customize the initial points of the floor
+     */
+    add_camera(Vector3{-1.0f, offset, -4.0f}, Vector3{2.5f, offset, 2.5f},
+               45.0f, CAMERA_PERSPECTIVE, CAMERA_FIRST_PERSON);
+    offset += height;
+  }
 }
 
 float RaylibWrapper::distance(float x1, float y1, float x2, float y2) {
@@ -136,6 +164,9 @@ void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
     DrawTriangle3D(Vector3{p1.GetX(), y, p1.GetY()},
                    Vector3{p3.GetX(), y, p3.GetY()},
                    Vector3{p2.GetX(), y, p2.GetY()}, color);
+    DrawTriangle3D(Vector3{p1.GetX(), y, p1.GetY()},
+                   Vector3{p2.GetX(), y, p2.GetY()},
+                   Vector3{p3.GetX(), y, p3.GetY()}, color);
     // printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n", i +
     // 1,
     //        p1.GetX(), p1.GetY(), p2.GetX(), p2.GetY(), p3.GetX(), p3.GetY());
@@ -288,48 +319,74 @@ RaylibWrapper::get_closed_polygon(std::vector<cv::Point2d> &points) {
   return polygon;
 }
 
-void RaylibWrapper::listen(RaylibWrapper &viewer) {
-    if (IsKeyPressed(KEY_C))
-      viewer.camera_index = ((viewer.camera_index + 1) % viewer.cameras.size());
-    if (IsKeyPressed(KEY_TAB))
-      viewer.cameras[viewer.camera_index].toggle_sniper_cam();
+void RaylibWrapper::listen(RaylibWrapper &viewer, const int &floor_count) {
+  const int default_cam = 2;
+  if (IsKeyPressed(KEY_C))
+    viewer.camera_index = ((viewer.camera_index + 1) % default_cam);
+  if (IsKeyUp(KEY_TAB)) {
+    viewer.cameras[viewer.camera_index].toggle_sniper_cam(true);
+  }
+
+  if (IsKeyDown(KEY_TAB)) {
+    viewer.cameras[viewer.camera_index].toggle_sniper_cam(false);
+  }
+
+  for (int i = 0; i < floor_count; i++) {
+#if defined(__APPLE__)
+    bool modifier_held =
+        IsKeyDown(KEY_LEFT_SUPER) || IsKeyDown(KEY_RIGHT_SUPER);
+#else
+    bool modifier_held =
+        IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+#endif
+
+    if (IsKeyPressed(i + 49) && modifier_held) {
+      std::cout << i + 49 << "\n";
+      viewer.camera_index = i + default_cam;
+    }
+  }
 }
 
-void RaylibWrapper::DrawFloor(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
-    float offset = 0.0f;
+void RaylibWrapper::DrawFloor(
+    RaylibWrapper &viewer,
+    std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
+  float offset = 0.0f;
 
-    for (const auto &contours2d : floors) {
+  for (const auto &contours2d : floors) {
 
-      std::vector<cv::Point2d> input_2D;
-      for (const auto &points : contours2d) {
-        for (const auto &point : points) {
-          input_2D.push_back(point);
-        }
+    std::vector<cv::Point2d> input_2D;
+    for (const auto &points : contours2d) {
+      for (const auto &point : points) {
+        input_2D.push_back(point);
       }
-
-      std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
-
-      Vector2dVector boundary;
-      for (cv::Point2d i : boundary_ip)
-        boundary.push_back(Vector2d(i.x, i.y));
-
-      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
-      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
     }
+
+    std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
+
+    Vector2dVector boundary;
+    for (cv::Point2d i : boundary_ip)
+      boundary.push_back(Vector2d(i.x, i.y));
+
+    viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
+    viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+  }
 }
 
-void RaylibWrapper::DrawCeil(RaylibWrapper &viewer, std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
-    const float floor_height = 6.0f;
-    float offset = 0.0f;
+void RaylibWrapper::DrawCeil(
+    RaylibWrapper &viewer,
+    std::vector<std::vector<std::vector<cv::Point2d>>> &floors,
+    const float &floor_height) {
 
-    for (const auto &floor : floors) {
-      offset += floor_height;
-      for (auto &contour : floor) {
-        Vector2dVector points_ip;
-        for (cv::Point2d point : contour) {
-          points_ip.push_back(Vector2d(point.x, point.y));
-        }
-        viewer.render_base(points_ip, offset, viewer.colors[0]);
+  float offset = 0.0f;
+
+  for (const auto &floor : floors) {
+    offset += floor_height;
+    for (auto &contour : floor) {
+      Vector2dVector points_ip;
+      for (cv::Point2d point : contour) {
+        points_ip.push_back(Vector2d(point.x, point.y));
       }
+      viewer.render_base(points_ip, offset, viewer.colors[0]);
     }
+  }
 }

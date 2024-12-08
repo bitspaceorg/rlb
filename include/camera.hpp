@@ -25,12 +25,12 @@ public:
 
   Camera3D &get_camera() { return camera; }
   int get_camera_mode() { return camera_mode; }
-  void toggle_sniper_cam() {
-    if (is_toggle_sniper) {
+  void toggle_sniper_cam(bool enable) {
+    if (!enable) {
       camera.fovy = 20.0f;
     } else {
       camera.fovy = fov;
     }
-    is_toggle_sniper = !is_toggle_sniper;
+    is_toggle_sniper = enable;
   }
 };
