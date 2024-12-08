@@ -1,9 +1,12 @@
 // global shader declaration
 #define GLSL_VERSION 330
 
+#include "imgui.h"
 #include "io.hpp"
 #include "raylib.h"
+#include "rlImGui.h"
 #include "raylibwrapper.hpp"
+#include "toolbar.hpp"
 #include "vignette.hpp"
 #include "lights.hpp"
 #include "raymath.h"
@@ -66,6 +69,8 @@ int main() {
   light.InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
   light.InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
 
+  rlImGuiSetup(true);
+
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
                           viewer.get_camera().position.y,
@@ -90,9 +95,15 @@ int main() {
     vignette.Draw(!viewer.cameras[viewer.camera_index].is_toggle_sniper);
     vignette.DisableShader();
 
+    rlImGuiBegin();	
+        Toolbar::render();
+    rlImGuiEnd();
+
     EndDrawing();
   }
+
   light.DisableShader();
+  rlImGuiShutdown();
 
   return 0;
 }
