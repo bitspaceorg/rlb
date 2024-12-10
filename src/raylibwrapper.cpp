@@ -1,21 +1,15 @@
 #include "raylibwrapper.hpp"
 #include "camera.hpp"
 #include "raylib.h"
+#include "raymath.h"
 #include "rlgl.h"
 #include "triangulate.hpp"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
-    : window_width(width), window_height(height), window_title(title) {
-  // camera = {0};
-  // camera.position = (Vector3){10.0f, 10.0f, 10.0f};
-  // camera.target = (Vector3){2.5f, 0.0f, 2.5f};
-  // camera.up = (Vector3){0.0f, 1.0f, 0.0f};
-  // camera.fovy = 45.0f;
-  // camera.projection = CAMERA_PERSPECTIVE;
-  // camera_mode = CAMERA_FREE;
-}
+    : window_width(width), window_height(height), window_title(title) {}
 
 RaylibWrapper::~RaylibWrapper() { CloseWindow(); }
 
@@ -28,12 +22,18 @@ void RaylibWrapper::update_camera() {
   Camera3D &camera = get_camera();
   int mode = get_camera_mode();
 
+  cameras[camera_index].prev_pos = camera.position;
+
+  DrawSphere(camera.position, 1.0f, RED);
+
   UpdateCamera(&camera, mode);
 }
 
 void RaylibWrapper::add_camera(const Vector3 &position, const Vector3 &target,
-                               float initialFov, int projection, int mode) {
-  cameras.push_back(CameraRay(position, target, initialFov, projection, mode));
+                               float initialFov, int projection, int mode,
+                               bool is_target_camera) {
+  cameras.push_back(CameraRay(position, target, initialFov, projection, mode,
+                              is_target_camera));
 }
 
 void RaylibWrapper::initialize_default_cam(const Vector2 &center) {
@@ -80,6 +80,90 @@ float RaylibWrapper::angle_between_points(float p1x, float p1y, float p2x,
   return angleInDegrees * -1;
 }
 
+bool RaylibWrapper::intersectRayBox(const Ray &ray, const Vector3 &boxMin,
+                                    const Vector3 &boxMax, float &tMin,
+                                    float &tMax) {
+  tMin = 0.0f;
+  tMax = FLT_MAX;
+
+  for (int i = 0; i < 3; i++) {
+    float t1, t2;
+
+    if (i == 0) {
+      t1 = (boxMin.x - ray.position.x) / ray.direction.x;
+      t2 = (boxMax.x - ray.position.x) / ray.direction.x;
+    } else if (i == 1) {
+      t1 = (boxMin.y - ray.position.y) / ray.direction.y;
+      t2 = (boxMax.y - ray.position.y) / ray.direction.y;
+    } else {
+      t1 = (boxMin.z - ray.position.z) / ray.direction.z;
+      t2 = (boxMax.z - ray.position.z) / ray.direction.z;
+    }
+
+    if (t1 > t2)
+      std::swap(t1, t2);
+
+    tMin = std::max(tMin, t1);
+    tMax = std::min(tMax, t2);
+
+    if (tMin > tMax)
+      return false;
+  }
+  return true;
+}
+
+// void DrawBoundingBox(const BoundingBox &box, Color color) {
+//   Vector3 corners[8] = {
+//       {box.min.x, box.min.y, box.min.z}, {box.max.x, box.min.y, box.min.z},
+//       {box.max.x, box.max.y, box.min.z}, {box.min.x, box.max.y, box.min.z},
+//       {box.min.x, box.min.y, box.max.z}, {box.max.x, box.min.y, box.max.z},
+//       {box.max.x, box.max.y, box.max.z}, {box.min.x, box.max.y, box.max.z}};
+//
+//   DrawLine3D(corners[0], corners[1], color);
+//   DrawLine3D(corners[1], corners[2], color);
+//   DrawLine3D(corners[2], corners[3], color);
+//   DrawLine3D(corners[3], corners[0], color);
+//
+//   DrawLine3D(corners[4], corners[5], color);
+//   DrawLine3D(corners[5], corners[6], color);
+//   DrawLine3D(corners[6], corners[7], color);
+//   DrawLine3D(corners[7], corners[4], color);
+//
+//   DrawLine3D(corners[0], corners[4], color);
+//   DrawLine3D(corners[1], corners[5], color);
+//   DrawLine3D(corners[2], corners[6], color);
+//   DrawLine3D(corners[3], corners[7], color);
+// }
+//
+//
+BoundingBox RaylibWrapper::GetRotatedCubeBoundingBox(float x1, float y1,
+                                                     float x2, float y2,
+                                                     float height,
+                                                     float offset) {
+  float segment_distance = distance(x1, y1, x2, y2);
+  float angle = angle_between_points(x1, y1, x2, y2) * DEG2RAD;
+
+  Vector3 cubeCorners[8] = {
+      {0, 0, -0.05f},      {segment_distance, 0, -0.05f},
+      {0, 0, 0.05f},       {segment_distance, 0, 0.05f},
+      {0, height, -0.05f}, {segment_distance, height, -0.05f},
+      {0, height, 0.05f},  {segment_distance, height, 0.05f}};
+
+  Matrix rotation = MatrixRotateY(angle);
+  Vector3 translation = {x1, offset, y1};
+
+  BoundingBox box = {{INFINITY, INFINITY, INFINITY},
+                     {-INFINITY, -INFINITY, -INFINITY}};
+
+  for (int i = 0; i < 8; i++) {
+    Vector3 transformed = Vector3Transform(cubeCorners[i], rotation);
+    transformed = Vector3Add(transformed, translation);
+    box.min = Vector3Min(box.min, transformed);
+    box.max = Vector3Max(box.max, transformed);
+  }
+
+  return box;
+}
 void RaylibWrapper::render(
     const std::vector<std::vector<cv::Point2d>> &contours, float &offset,
     const float &height, Color color) {
@@ -95,25 +179,27 @@ void RaylibWrapper::render(
       Vector3 v1 = {x1, offset, y1}, v2 = {x2, offset, y2};
       float angle = angle_between_points(x1, y1, x2, y2);
 
+      float cubeHeight = height;
+      float cubeWidth = segment_distance;
+
       rlPushMatrix();
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
-
-      DrawCube({segment_distance / 2, 0.0f, 0.0f}, segment_distance, height,
-               0.1f, color);
-
+      DrawCube({cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight, 0.1f, color);
       rlPopMatrix();
-    }
 
-    // NOTE: Enable if all points are accurate enough (solid ceiling)
-    // Vector2dVector points_ip;
-    // for (cv::Point2d point : points) {
-    //   points_ip.push_back(Vector2d(point.x, point.y));
-    // }
-    // auto points_ip = points;
-    // render_base(points_ip, 6.0f, WHITE);
-    // render_base_lines(get_closed_polygon(points_ip), 6.0f, colors[0]);
+      BoundingBox cube_box =
+          GetRotatedCubeBoundingBox(x1, y1, x2, y2, cubeHeight, offset - 3.0f);
+
+      // DrawBoundingBox(cube_box, RED);
+
+      if (CheckCollisionBoxSphere(cube_box, get_camera().position, 0.1f)) {
+        std::cout << "Collision detected!\n";
+        get_camera().position = cameras[camera_index].prev_pos;
+      }
+    }
   }
+
   offset += height;
 }
 
@@ -242,7 +328,7 @@ RaylibWrapper::get_boundary(std::vector<cv::Point2d> &points) {
       double cross =
           (p2.x - p1.x) * (it->y - p2.y) - (p2.y - p1.y) * (it->x - p2.x);
       if (cross <= 0)
-        boundary.pop_back(); // Remove non-boundary point
+        boundary.pop_back();
       else
         break;
     }
@@ -327,10 +413,6 @@ void RaylibWrapper::listen(RaylibWrapper &viewer, const int &floor_count) {
     viewer.cameras[viewer.camera_index].toggle_sniper_cam(true);
   }
 
-  if (IsKeyDown(KEY_TAB)) {
-    viewer.cameras[viewer.camera_index].toggle_sniper_cam(false);
-  }
-
   for (int i = 0; i < floor_count; i++) {
 #if defined(__APPLE__)
     bool modifier_held =
@@ -341,10 +423,44 @@ void RaylibWrapper::listen(RaylibWrapper &viewer, const int &floor_count) {
 #endif
 
     if (IsKeyPressed(i + 49) && modifier_held) {
-      std::cout << i + 49 << "\n";
       viewer.camera_index = i + default_cam;
     }
   }
+
+  for (int i = floor_count + default_cam; i < viewer.cameras.size(); i++) {
+#if defined(__APPLE__)
+    bool modifier_held =
+        IsKeyDown(KEY_LEFT_SUPER) || IsKeyDown(KEY_RIGHT_SUPER);
+#else
+    bool modifier_held =
+        IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+#endif
+    if (IsKeyPressed(i + 49 - default_cam) && modifier_held) {
+      viewer.camera_index = i;
+    }
+  }
+
+  if (IsKeyDown(KEY_TAB)) {
+    viewer.cameras[viewer.camera_index].toggle_sniper_cam(false);
+  }
+}
+
+Vector3 RaylibWrapper::GetRayHitPosition(Ray ray, float distance) {
+  float length = sqrtf(ray.direction.x * ray.direction.x +
+                       ray.direction.y * ray.direction.y +
+                       ray.direction.z * ray.direction.z);
+
+  Vector3 normalizedDir = {ray.direction.x / length, ray.direction.y / length,
+                           ray.direction.z / length};
+
+  Vector3 scaledDir = {normalizedDir.x * distance, normalizedDir.y * distance,
+                       normalizedDir.z * distance};
+
+  Vector3 hitPosition = {ray.position.x + scaledDir.x,
+                         ray.position.y + scaledDir.y,
+                         ray.position.z + scaledDir.z};
+
+  return hitPosition;
 }
 
 void RaylibWrapper::DrawFloor(
@@ -355,7 +471,15 @@ void RaylibWrapper::DrawFloor(
   for (const auto &contours2d : floors) {
 
     std::vector<cv::Point2d> input_2D;
+
+    int index = 0;
+
     for (const auto &points : contours2d) {
+
+      Ray ray = GetMouseRay(
+          (Vector2){viewer.window_width / 2.0f, viewer.window_height / 2.0f},
+          viewer.get_camera());
+
       for (const auto &point : points) {
         input_2D.push_back(point);
       }

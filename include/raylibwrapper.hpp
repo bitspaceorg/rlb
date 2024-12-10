@@ -41,7 +41,13 @@ public:
   int get_camera_mode() { return cameras[camera_index].get_camera_mode(); }
   void add_camera(const Vector3 &position, const Vector3 &target,
                   float initialFov = 45.0f, int projection = CAMERA_PERSPECTIVE,
-                  int mode = CAMERA_FREE);
+                  int mode = CAMERA_FREE, bool is_target_camera = 0);
+  float get_fov() { return cameras[camera_index].get_fov(); }
+  void set_fov(const float &fovy) { cameras[camera_index].set_fov(fovy); }
+  Vector3 get_position() { return cameras[camera_index].get_position(); }
+  Vector3 get_target() { return cameras[camera_index].get_target(); }
+  int get_mode() { return cameras[camera_index].get_mode(); }
+  void set_mode(const int &mode) { cameras[camera_index].set_mode(mode); }
   void initialize_default_cam(const Vector2 &cente);
   void initialize_floor_cam(const float &height, const int &floor_count);
 
@@ -55,4 +61,11 @@ public:
   std::vector<cv::Point2d> get_boundary(std::vector<cv::Point2d> &points);
   std::vector<cv::Point2d> get_bounding_box(std::vector<cv::Point2d> &points);
   std::vector<cv::Point2d> get_closed_polygon(std::vector<cv::Point2d> &points);
+
+  bool intersectRayBox(const Ray &ray, const Vector3 &boxMin,
+                       const Vector3 &boxMax, float &tMin, float &tMax);
+
+  Vector3 GetRayHitPosition(Ray ray, float distance);
+  BoundingBox GetRotatedCubeBoundingBox(float x1, float y1, float x2, float y2,
+                                        float height, float offset);
 };

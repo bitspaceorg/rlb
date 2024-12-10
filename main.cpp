@@ -17,7 +17,7 @@ int main() {
   const float floor_height = 6.0f;
   std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 
-  std::vector<std::string> image_path = {"../test.jpeg", "../test5.jpeg"};
+  std::vector<std::string> image_path = {"../test.jpeg"};
   for (std::string i : image_path) {
     IOHelper *io = new IOHelper();
     auto img = io->read_image(i);
@@ -32,6 +32,7 @@ int main() {
 
   RaylibWrapper viewer(width, height, "3D Room Viewer");
   viewer.init();
+  Toolbar::init(&viewer);
 
   // rendering
   std::vector<cv::Point2d> input_2D;
@@ -63,6 +64,9 @@ int main() {
   light.InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
 
   rlImGuiSetup(true);
+
+  BoundingBox object = {(Vector3){-1.0f, 0.0f, -1.0f},
+                        (Vector3){1.0f, 2.0f, 1.0f}};
 
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
