@@ -10,14 +10,21 @@
 #include "toolbar.hpp"
 #include "vignette.hpp"
 
-int main() {
-  // flags
-  SetConfigFlags(FLAG_MSAA_4X_HINT);
+// constants
+const float floor_height = 6.0f;
+int width = 1920, height = 1080;
+float sumX = 0, sumY = 0;
+Vector2 center = Vector2{width / 2.0f, height / 2.0f};
 
-  const float floor_height = 6.0f;
-  std::vector<std::vector<std::vector<cv::Point2d>>> floors;
+// globals
+std::vector<std::vector<std::vector<cv::Point2d>>> floors;
+std::vector<std::string> image_path = {};
 
-  std::vector<std::string> image_path = {"../test.jpeg"};
+void recalculate(const std::string &temp, RaylibWrapper &viewer) {
+  floors.clear();
+  image_path.push_back(temp);
+  sumX = 0;
+  sumY = 0;
   for (std::string i : image_path) {
     IOHelper *io = new IOHelper();
     auto img = io->read_image(i);
@@ -28,12 +35,6 @@ int main() {
     floors.push_back(contours2d);
   }
 
-  int width = 1920, height = 1080;
-
-  RaylibWrapper viewer(width, height, "3D Room Viewer");
-  viewer.init();
-  Toolbar::init(&viewer);
-
   // rendering
   std::vector<cv::Point2d> input_2D;
   for (const auto &points : floors[0]) {
@@ -41,20 +42,30 @@ int main() {
       input_2D.push_back(point);
     }
   }
-  std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
 
-  float sumX = 0, sumY = 0;
+  std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
   for (const auto &point : boundary_ip) {
-    std::cout << point.x << " " << point.y << "\n";
     sumX += point.x;
     sumY += point.y;
   }
+  center = Vector2{sumX / 4.0f, sumY / 4.0f};
+	viewer.cameras.clear();
+  viewer.initialize_default_cam(center);
+  viewer.initialize_floor_cam(floor_height, floors.size());
+}
 
-  Vector2 center = Vector2{sumX / 4.0f, sumY / 4.0f};
+int main() {
+  // flags
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+
+  RaylibWrapper viewer(width, height, "3D Room Viewer");
+  viewer.init();
+  Toolbar::init(&viewer);
 
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
 
+  recalculate("../test.jpeg", viewer);
   Vignette vignette(width, height);
 
   // lighting
