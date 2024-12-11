@@ -1,6 +1,7 @@
 // global shader declaration
 #define GLSL_VERSION 330
 
+#include "api.hpp"
 #include "image.hpp"
 #include "io.hpp"
 #include "iostream"
@@ -32,7 +33,9 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   std::vector<std::vector<cv::Point2d>> contours2d, window_contours2d;
   // TODO: fix multi api call
 
-  io->read_image(temp, contours, 0);
+  auto img = CustImage(imread("../test_big.jpeg"));
+  // io->read_image(temp, contours, 0);
+  img.water_shed(contours);
   io->read_image(temp, window_contours, 1);
 
   CustImage::normalize(contours, window_contours, contours2d, window_contours2d);

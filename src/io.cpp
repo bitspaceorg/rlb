@@ -6,7 +6,7 @@
 // std::vector<std::vector<cv::Point2d>> contours2d;
 void IOHelper::read_image(std::string path,
                           std::vector<std::vector<cv::Point>> &contour,int index) {
-  auto data = API::post(path);
+  auto data = API::post("/home/naviprem/dev/sih/rlb/test_big.jpeg");
   // process walls
   for (auto x : data[index]) {
     auto a = x[0];
