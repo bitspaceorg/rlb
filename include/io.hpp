@@ -6,5 +6,5 @@ using namespace cv;
 
 class IOHelper {
 public:
-  void read_image(std::string, std::vector<std::vector<cv::Point>> &);
+  void read_image(std::string, std::vector<std::vector<cv::Point>> &, int);
 };

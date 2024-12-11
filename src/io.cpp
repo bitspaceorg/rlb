@@ -5,10 +5,10 @@
 // returns a image class
 // std::vector<std::vector<cv::Point2d>> contours2d;
 void IOHelper::read_image(std::string path,
-                          std::vector<std::vector<cv::Point>> &contour) {
+                          std::vector<std::vector<cv::Point>> &contour,int index) {
   auto data = API::post(path);
   // process walls
-  for (auto x : data[0]) {
+  for (auto x : data[index]) {
     auto a = x[0];
     auto b = x[1];
     vector<cv::Point> temp;

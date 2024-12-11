@@ -20,6 +20,7 @@ Vector2 center = Vector2{width / 2.0f, height / 2.0f};
 
 // globals
 std::vector<std::vector<std::vector<cv::Point2d>>> floors;
+std::vector<std::vector<std::vector<cv::Point2d>>> floor_window;
 std::vector<std::string> image_path = {};
 
 void recalculate(const std::string &temp, RaylibWrapper &viewer) {
@@ -27,11 +28,18 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   sumX = 0;
   sumY = 0;
   IOHelper *io = new IOHelper();
-  std::vector<std::vector<cv::Point>> contours;
-  std::vector<std::vector<cv::Point2d>> contours2d;
-  io->read_image(temp, contours);
+  std::vector<std::vector<cv::Point>> contours, window_contours;
+  std::vector<std::vector<cv::Point2d>> contours2d, window_countours_2d;
+  // TODO: fix multi api call
+  // walls
+  io->read_image(temp, contours, 0);
   CustImage::normalize(contours, contours2d);
   floors.push_back(contours2d);
+  // window
+  io->read_image(temp, window_contours, 1);
+  CustImage::normalize(window_contours, window_countours_2d);
+  floor_window.push_back(window_countours_2d);
+
   // rendering
   std::vector<cv::Point2d> input_2D;
   for (const auto &points : floors[0]) {
@@ -45,6 +53,7 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
     sumX += point.x;
     sumY += point.y;
   }
+
   center = Vector2{sumX / 4.0f, sumY / 4.0f};
   viewer.cameras.clear();
   viewer.initialize_default_cam(center);
