@@ -65,7 +65,7 @@ void enter() {
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
 
-  recalculate("../test.jpeg", viewer);
+  recalculate("../test_big.jpeg", viewer);
   Vignette vignette(width, height);
 
   // lighting
@@ -115,17 +115,6 @@ void enter() {
 }
 
 int main() {
-    const char* password = std::getenv("GENERATED_PASSWORD");
-    std::cout << "Enter your password: ";
-
-    std::string input;
-    std::cin >> input;
-
-    if (input == password) enter();
-    else {
-        std::cout << "Incorrect password...\n";
-        return 1;
-    }
-
+	enter();
     return 0;
 }

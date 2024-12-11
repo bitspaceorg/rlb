@@ -7,10 +7,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set (OpenCV_DIR ${CMAKE_SOURCE_DIR}/Vendor/opencv/build)
 find_package(OpenCV REQUIRED)
+find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS}/include)
 link_directories(${OpenCV_LIB_DIR})
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/Vendor/json)
 
 #custom
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -26,7 +29,7 @@ add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES} src/tinyfiledialogs.c)
 target_link_libraries(main ${OpenCV_LIBS} )
 # Link the raylib static library
 target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/libraylib.a)
-target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/libglfw3.a)
+target_link_libraries(main ${CMAKE_SOURCE_DIR}/Vendor/glfw-3.4/libglfw3.a ${Boost_LIBRARIES} nlohmann_json::nlohmann_json)
 
 if (APPLE)
     target_link_libraries(main "-framework IOKit" "-framework Cocoa" "-framework OpenGL")
