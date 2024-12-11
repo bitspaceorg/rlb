@@ -21,7 +21,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include/rlImgui)
 file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 file(GLOB IMGUI_SOURCES ${CMAKE_SOURCE_DIR}/src/imgui/*.cpp)
 
-add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES})
+add_executable(main main.cpp ${SOURCES} ${IMGUI_SOURCES} src/tinyfiledialogs.c)
 
 target_link_libraries(main ${OpenCV_LIBS} )
 # Link the raylib static library

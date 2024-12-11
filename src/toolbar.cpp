@@ -14,6 +14,9 @@ inline ImGuiWindowFlags WINDOW_FLAGS =
     ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove |
     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
     ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
+Toolbar::Toolbar(std::function<void()> func) {
+  this->addImage = func;
+}
 
 void Toolbar::init(RaylibWrapper *initial_viewer) { viewer = initial_viewer; }
 
@@ -34,7 +37,7 @@ void Toolbar::render() {
   else if (Toolbar::state == Tool::ADD_CAMERA_TOOL)
     Toolbar::render_add_camera_tool();
 
-  Toolbar::render_toolbar();
+  this->render_toolbar();
 }
 
 void Toolbar::render_distance_tool() {
@@ -211,26 +214,8 @@ void Toolbar::render_toolbar() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
-  // CAMERA TOGGLE
-  if (ImGui::Selectable("C", Toolbar::state == Tool::CAMERA_TOOL,
-                        ImGuiSelectableFlags_None, ImVec2(40 - 12, 40))) {
-    Toolbar::state =
-        Toolbar::state == Tool::CAMERA_TOOL ? Tool::NONE : Tool::CAMERA_TOOL;
-  }
-
-  // DISTANCE TOGGLE
-  if (ImGui::Selectable("D", Toolbar::state == Tool::DISTANCE_TOOL,
-                        ImGuiSelectableFlags_None, ImVec2(40 - 12, 40))) {
-    Toolbar::state = Toolbar::state == Tool::DISTANCE_TOOL
-                         ? Tool::NONE
-                         : Tool::DISTANCE_TOOL;
-  }
-
-  // DAY NIGHT TOGGLE
-  if (ImGui::Selectable("T", Toolbar::state == Tool::CLOCK_TOOL,
-                        ImGuiSelectableFlags_None, ImVec2(40 - 12, 40))) {
-    Toolbar::state =
-        Toolbar::state == Tool::CLOCK_TOOL ? Tool::NONE : Tool::CLOCK_TOOL;
+  if (ImGui::Button("Upload")) {
+    addImage();
   }
 
   ImGui::PopStyleVar(2);
