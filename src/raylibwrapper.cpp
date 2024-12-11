@@ -80,62 +80,6 @@ float RaylibWrapper::angle_between_points(float p1x, float p1y, float p2x,
   return angleInDegrees * -1;
 }
 
-bool RaylibWrapper::intersectRayBox(const Ray &ray, const Vector3 &boxMin,
-                                    const Vector3 &boxMax, float &tMin,
-                                    float &tMax) {
-  tMin = 0.0f;
-  tMax = FLT_MAX;
-
-  for (int i = 0; i < 3; i++) {
-    float t1, t2;
-
-    if (i == 0) {
-      t1 = (boxMin.x - ray.position.x) / ray.direction.x;
-      t2 = (boxMax.x - ray.position.x) / ray.direction.x;
-    } else if (i == 1) {
-      t1 = (boxMin.y - ray.position.y) / ray.direction.y;
-      t2 = (boxMax.y - ray.position.y) / ray.direction.y;
-    } else {
-      t1 = (boxMin.z - ray.position.z) / ray.direction.z;
-      t2 = (boxMax.z - ray.position.z) / ray.direction.z;
-    }
-
-    if (t1 > t2)
-      std::swap(t1, t2);
-
-    tMin = std::max(tMin, t1);
-    tMax = std::min(tMax, t2);
-
-    if (tMin > tMax)
-      return false;
-  }
-  return true;
-}
-
-// void DrawBoundingBox(const BoundingBox &box, Color color) {
-//   Vector3 corners[8] = {
-//       {box.min.x, box.min.y, box.min.z}, {box.max.x, box.min.y, box.min.z},
-//       {box.max.x, box.max.y, box.min.z}, {box.min.x, box.max.y, box.min.z},
-//       {box.min.x, box.min.y, box.max.z}, {box.max.x, box.min.y, box.max.z},
-//       {box.max.x, box.max.y, box.max.z}, {box.min.x, box.max.y, box.max.z}};
-//
-//   DrawLine3D(corners[0], corners[1], color);
-//   DrawLine3D(corners[1], corners[2], color);
-//   DrawLine3D(corners[2], corners[3], color);
-//   DrawLine3D(corners[3], corners[0], color);
-//
-//   DrawLine3D(corners[4], corners[5], color);
-//   DrawLine3D(corners[5], corners[6], color);
-//   DrawLine3D(corners[6], corners[7], color);
-//   DrawLine3D(corners[7], corners[4], color);
-//
-//   DrawLine3D(corners[0], corners[4], color);
-//   DrawLine3D(corners[1], corners[5], color);
-//   DrawLine3D(corners[2], corners[6], color);
-//   DrawLine3D(corners[3], corners[7], color);
-// }
-//
-//
 BoundingBox RaylibWrapper::GetRotatedCubeBoundingBox(float x1, float y1,
                                                      float x2, float y2,
                                                      float height,
@@ -445,24 +389,6 @@ void RaylibWrapper::listen(RaylibWrapper &viewer, const int &floor_count) {
   }
 }
 
-Vector3 RaylibWrapper::GetRayHitPosition(Ray ray, float distance) {
-  float length = sqrtf(ray.direction.x * ray.direction.x +
-                       ray.direction.y * ray.direction.y +
-                       ray.direction.z * ray.direction.z);
-
-  Vector3 normalizedDir = {ray.direction.x / length, ray.direction.y / length,
-                           ray.direction.z / length};
-
-  Vector3 scaledDir = {normalizedDir.x * distance, normalizedDir.y * distance,
-                       normalizedDir.z * distance};
-
-  Vector3 hitPosition = {ray.position.x + scaledDir.x,
-                         ray.position.y + scaledDir.y,
-                         ray.position.z + scaledDir.z};
-
-  return hitPosition;
-}
-
 void RaylibWrapper::DrawFloor(
     RaylibWrapper &viewer,
     std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
@@ -475,17 +401,41 @@ void RaylibWrapper::DrawFloor(
     int index = 0;
 
     for (const auto &points : contours2d) {
-
-      Ray ray = GetMouseRay(
-          (Vector2){viewer.window_width / 2.0f, viewer.window_height / 2.0f},
-          viewer.get_camera());
-
       for (const auto &point : points) {
         input_2D.push_back(point);
       }
     }
 
     std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
+
+    double min_x = std::numeric_limits<double>::max();
+    double max_x = std::numeric_limits<double>::min();
+    double min_y = std::numeric_limits<double>::max();
+    double max_y = std::numeric_limits<double>::min();
+
+    for (const auto &point : boundary_ip) {
+      min_x = std::min(min_x, point.x);
+      max_x = std::max(max_x, point.x);
+      min_y = std::min(min_y, point.y);
+      max_y = std::max(max_y, point.y);
+    }
+
+    // BoundingBox bounding_box = {
+    // 	.min = boundary_ip[]
+    // }
+
+    BoundingBox bounding_box;
+    bounding_box.min =
+        Vector3{static_cast<float>(min_x), 0.0f, static_cast<float>(min_y)};
+    bounding_box.max =
+        Vector3{static_cast<float>(max_x), 0.0f, static_cast<float>(max_y)};
+
+    if (CheckCollisionBoxSphere(bounding_box, viewer.get_camera().position,
+                                0.1f)) {
+      std::cout << "Collision detected!\n";
+      viewer.get_camera().position =
+          viewer.cameras[viewer.camera_index].prev_pos;
+    }
 
     Vector2dVector boundary;
     for (cv::Point2d i : boundary_ip)

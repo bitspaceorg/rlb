@@ -61,11 +61,6 @@ public:
   std::vector<cv::Point2d> get_boundary(std::vector<cv::Point2d> &points);
   std::vector<cv::Point2d> get_bounding_box(std::vector<cv::Point2d> &points);
   std::vector<cv::Point2d> get_closed_polygon(std::vector<cv::Point2d> &points);
-
-  bool intersectRayBox(const Ray &ray, const Vector3 &boxMin,
-                       const Vector3 &boxMax, float &tMin, float &tMax);
-
-  Vector3 GetRayHitPosition(Ray ray, float distance);
   BoundingBox GetRotatedCubeBoundingBox(float x1, float y1, float x2, float y2,
                                         float height, float offset);
 };
