@@ -34,7 +34,8 @@ public:
   static void listen(RaylibWrapper &viewer, const int &floor_count);
   static void
   DrawFloor(RaylibWrapper &viewer,
-            std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+            std::vector<std::vector<std::vector<cv::Point2d>>> &floors,
+            bool isWindow = false);
   static void
   DrawCeil(RaylibWrapper &viewer,
            std::vector<std::vector<std::vector<cv::Point2d>>> &floors,

@@ -101,6 +101,7 @@ void enter() {
     BeginMode3D(viewer.get_camera());
     light.EnableShader();
     RaylibWrapper::DrawFloor(viewer, floors);
+    RaylibWrapper::DrawFloor(viewer, floor_window, true);
     EndShaderMode();
     RaylibWrapper::DrawCeil(viewer, floors, floor_height);
     EndMode3D();

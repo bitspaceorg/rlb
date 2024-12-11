@@ -400,7 +400,7 @@ void RaylibWrapper::listen(RaylibWrapper &viewer, const int &floor_count) {
 
 void RaylibWrapper::DrawFloor(
     RaylibWrapper &viewer,
-    std::vector<std::vector<std::vector<cv::Point2d>>> &floors) {
+    std::vector<std::vector<std::vector<cv::Point2d>>> &floors, bool isWindow) {
   float offset = 0.0f;
 
   for (const auto &contours2d : floors) {
@@ -454,9 +454,12 @@ void RaylibWrapper::DrawFloor(
     Vector2dVector boundary;
     for (cv::Point2d i : boundary_ip)
       boundary.push_back(Vector2d(i.x, i.y));
-
-    viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
-    viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+    if (!isWindow) {
+      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
+      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+    } else {
+      viewer.render(contours2d, offset, 6.0f, viewer.colors[1]);
+    }
   }
 }
 
