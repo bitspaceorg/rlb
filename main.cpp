@@ -1,7 +1,9 @@
 // global shader declaration
 #define GLSL_VERSION 330
 
+#include "image.hpp"
 #include "io.hpp"
+#include "iostream"
 #include "lights.hpp"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
@@ -22,19 +24,14 @@ std::vector<std::string> image_path = {};
 
 void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   floors.clear();
-  image_path.push_back(temp);
   sumX = 0;
   sumY = 0;
-  for (std::string i : image_path) {
-    IOHelper *io = new IOHelper();
-    auto img = io->read_image(i);
-    std::vector<std::vector<cv::Point>> contours;
-    std::vector<std::vector<cv::Point2d>> contours2d;
-    img.water_shed(contours);
-    CustImage::normalize(contours, contours2d);
-    floors.push_back(contours2d);
-  }
-
+  IOHelper *io = new IOHelper();
+  std::vector<std::vector<cv::Point>> contours;
+  std::vector<std::vector<cv::Point2d>> contours2d;
+  io->read_image(temp, contours);
+  CustImage::normalize(contours, contours2d);
+  floors.push_back(contours2d);
   // rendering
   std::vector<cv::Point2d> input_2D;
   for (const auto &points : floors[0]) {
@@ -49,7 +46,7 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
     sumY += point.y;
   }
   center = Vector2{sumX / 4.0f, sumY / 4.0f};
-	viewer.cameras.clear();
+  viewer.cameras.clear();
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
 }
@@ -115,6 +112,6 @@ void enter() {
 }
 
 int main() {
-	enter();
-    return 0;
+  enter();
+  return 0;
 }

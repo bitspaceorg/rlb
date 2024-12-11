@@ -1,15 +1,22 @@
 #include "io.hpp"
-#include <iostream>
-#include <filesystem>
+#include "api.hpp"
+#include <opencv2/core/types.hpp>
 
-//returns a image class
-CustImage IOHelper::read_image(std::string path) {
-  Mat image = imread(path, IMREAD_COLOR);
-	std::cout<<std::filesystem::current_path()<<"\n";
-  if (image.empty()) {
-		std::cout<<path<<"\n";
-    std::cerr << "[ERROR] CustImage Not Found in Path!";
-    std::exit(1);
+// returns a image class
+// std::vector<std::vector<cv::Point2d>> contours2d;
+void IOHelper::read_image(std::string path,
+                          std::vector<std::vector<cv::Point>> &contour) {
+  auto data = API::post(path);
+  // process walls
+  for (auto x : data[0]) {
+    auto a = x[0];
+    auto b = x[1];
+    vector<cv::Point> temp;
+    temp.emplace_back(a.x, a.y);
+    temp.emplace_back(b.x, a.y);
+    temp.emplace_back(b.x, b.y);
+    temp.emplace_back(a.x, b.y);
+		
+		contour.push_back(temp);
   }
-    return CustImage(image);
 }
