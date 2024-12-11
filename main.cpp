@@ -54,7 +54,7 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   viewer.initialize_floor_cam(floor_height, floors.size());
 }
 
-int main() {
+void enter() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
@@ -112,6 +112,20 @@ int main() {
 
   light.DisableShader();
   rlImGuiShutdown();
+}
 
-  return 0;
+int main() {
+    const char* password = std::getenv("GENERATED_PASSWORD");
+    std::cout << "Enter your password: ";
+
+    std::string input;
+    std::cin >> input;
+
+    if (input == password) enter();
+    else {
+        std::cout << "Incorrect password...\n";
+        return 1;
+    }
+
+    return 0;
 }
