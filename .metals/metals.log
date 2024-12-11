@@ -41,3 +41,17 @@
 2024.12.11 01:54:21 INFO  time: initialize in 1s[0m
 2024.12.11 01:54:21 WARN  Build server is not auto-connectable.[0m
 2024.12.11 01:54:21 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/sih/main'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+2024.12.11 10:16:16 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/rahulnavneeth/projects/sih/main/.metals/lsp.trace.json or /Users/rahulnavneeth/Library/Caches/org.scalameta.metals/lsp.trace.json[0m
+2024.12.11 10:16:17 INFO  logging to file /Users/rahulnavneeth/projects/sih/main/.metals/metals.log[0m
+2024.12.11 10:16:17 INFO  Started: Metals version 0.11.2 in workspace '/Users/rahulnavneeth/projects/sih/main' for client coc.nvim 0.0.82.[0m
+2024.12.11 10:16:17 INFO  Parse release: 19.0.1[0m
+2024.12.11 10:16:18 INFO  time: initialize in 1.04s[0m
+2024.12.11 10:16:18 WARN  Build server is not auto-connectable.[0m
+2024.12.11 10:16:18 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/sih/main'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m
+2024.12.11 10:17:47 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/rahulnavneeth/projects/sih/main/.metals/lsp.trace.json or /Users/rahulnavneeth/Library/Caches/org.scalameta.metals/lsp.trace.json[0m
+2024.12.11 10:17:48 INFO  logging to file /Users/rahulnavneeth/projects/sih/main/.metals/metals.log[0m
+2024.12.11 10:17:48 INFO  Started: Metals version 0.11.2 in workspace '/Users/rahulnavneeth/projects/sih/main' for client coc.nvim 0.0.82.[0m
+2024.12.11 10:17:48 INFO  Parse release: 19.0.1[0m
+2024.12.11 10:17:49 INFO  time: initialize in 1.03s[0m
+2024.12.11 10:17:49 WARN  Build server is not auto-connectable.[0m
+2024.12.11 10:17:49 WARN  no build tool detected in workspace '/Users/rahulnavneeth/projects/sih/main'. The most common cause for this problem is that the editor was opened in the wrong working directory, for example if you use sbt then the workspace directory should contain build.sbt. [0m

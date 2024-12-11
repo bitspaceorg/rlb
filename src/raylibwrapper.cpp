@@ -15,6 +15,7 @@ RaylibWrapper::~RaylibWrapper() { CloseWindow(); }
 
 void RaylibWrapper::init() {
   InitWindow(window_width, window_height, window_title.c_str());
+  font = LoadFont("../resource/JetBrainsMono-Regular.ttf");
   SetTargetFPS(60);
 }
 
@@ -23,8 +24,6 @@ void RaylibWrapper::update_camera() {
   int mode = get_camera_mode();
 
   cameras[camera_index].prev_pos = camera.position;
-
-  DrawSphere(camera.position, 1.0f, RED);
 
   UpdateCamera(&camera, mode);
 }
@@ -57,8 +56,9 @@ void RaylibWrapper::initialize_floor_cam(const float &height,
      * First Person
      * NOTE: customize the initial points of the floor
      */
-    add_camera(Vector3{-1.0f, offset, -4.0f}, Vector3{2.5f, offset, 2.5f},
-               45.0f, CAMERA_PERSPECTIVE, CAMERA_FIRST_PERSON);
+    add_camera(Vector3{-8.0f, offset + 1.0f, -14.0f},
+               Vector3{2.5f, offset + 1.0f, 2.5f}, 45.0f, CAMERA_PERSPECTIVE,
+               CAMERA_FIRST_PERSON);
     offset += height;
   }
 }
@@ -135,10 +135,19 @@ void RaylibWrapper::render(
       BoundingBox cube_box =
           GetRotatedCubeBoundingBox(x1, y1, x2, y2, cubeHeight, offset - 3.0f);
 
+      Ray ray = {
+          .position = get_camera().position,
+          .direction = get_camera().target - get_camera().position,
+      };
+
+      RayCollision get_collision_ray = GetRayCollisionBox(ray, cube_box);
+
+      if (get_collision_ray.hit)
+        distance_from_camera = get_collision_ray.distance;
+
       // DrawBoundingBox(cube_box, RED);
 
       if (CheckCollisionBoxSphere(cube_box, get_camera().position, 0.1f)) {
-        std::cout << "Collision detected!\n";
         get_camera().position = cameras[camera_index].prev_pos;
       }
     }
@@ -420,19 +429,24 @@ void RaylibWrapper::DrawFloor(
       max_y = std::max(max_y, point.y);
     }
 
-    // BoundingBox bounding_box = {
-    // 	.min = boundary_ip[]
-    // }
-
     BoundingBox bounding_box;
     bounding_box.min =
         Vector3{static_cast<float>(min_x), 0.0f, static_cast<float>(min_y)};
     bounding_box.max =
         Vector3{static_cast<float>(max_x), 0.0f, static_cast<float>(max_y)};
 
+    Ray ray = {
+        .position = viewer.get_camera().position,
+        .direction = viewer.get_camera().target - viewer.get_camera().position,
+    };
+
+    RayCollision get_collision_ray = GetRayCollisionBox(ray, bounding_box);
+
+    if (get_collision_ray.hit)
+      viewer.distance_from_camera = get_collision_ray.distance;
+
     if (CheckCollisionBoxSphere(bounding_box, viewer.get_camera().position,
                                 0.1f)) {
-      std::cout << "Collision detected!\n";
       viewer.get_camera().position =
           viewer.cameras[viewer.camera_index].prev_pos;
     }

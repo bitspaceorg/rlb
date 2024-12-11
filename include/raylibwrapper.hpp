@@ -25,6 +25,10 @@ public:
   std::vector<CameraRay> cameras;
   int camera_index = 0;
 
+  Font font;
+
+  float distance_from_camera = 0.0f;
+
   void init();
 
   static void listen(RaylibWrapper &viewer, const int &floor_count);

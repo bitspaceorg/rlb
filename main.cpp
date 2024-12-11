@@ -1,5 +1,4 @@
 // global shader declaration
-#include "imgui.h"
 #define GLSL_VERSION 330
 
 #include "io.hpp"
@@ -8,33 +7,17 @@
 #include "raylibwrapper.hpp"
 #include "raymath.h"
 #include "rlImGui.h"
-#include "tinyfiledialogs.h"
 #include "toolbar.hpp"
 #include "vignette.hpp"
 
-const float floor_height = 6.0f;
-float sumX = 0, sumY = 0;
-std::vector<std::vector<std::vector<cv::Point2d>>> floors;
+int main() {
+  // flags
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-void render_gloab_context(RaylibWrapper &viewer, LightLoader &light,
-                          Vignette &vignette) {
-  viewer.update_camera();
-  light.UpdateLight(viewer.get_camera());
+  const float floor_height = 6.0f;
+  std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 
-  BeginMode3D(viewer.get_camera());
-  light.EnableShader();
-  RaylibWrapper::DrawFloor(viewer, floors);
-  EndShaderMode();
-  RaylibWrapper::DrawCeil(viewer, floors, floor_height);
-  EndMode3D();
-
-  vignette.EnableShader();
-  vignette.Draw(!viewer.cameras[viewer.camera_index].is_toggle_sniper);
-  vignette.DisableShader();
-}
-
-void recalculate(std::vector<std::string> &image_path, RaylibWrapper &viewer) {
-  floors.clear();
+  std::vector<std::string> image_path = {"../test.jpeg"};
   for (std::string i : image_path) {
     IOHelper *io = new IOHelper();
     auto img = io->read_image(i);
@@ -44,6 +27,13 @@ void recalculate(std::vector<std::string> &image_path, RaylibWrapper &viewer) {
     CustImage::normalize(contours, contours2d);
     floors.push_back(contours2d);
   }
+
+  int width = 1920, height = 1080;
+
+  RaylibWrapper viewer(width, height, "3D Room Viewer");
+  viewer.init();
+  Toolbar::init(&viewer);
+
   // rendering
   std::vector<cv::Point2d> input_2D;
   for (const auto &points : floors[0]) {
@@ -53,39 +43,18 @@ void recalculate(std::vector<std::string> &image_path, RaylibWrapper &viewer) {
   }
   std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
 
+  float sumX = 0, sumY = 0;
   for (const auto &point : boundary_ip) {
+    std::cout << point.x << " " << point.y << "\n";
     sumX += point.x;
     sumY += point.y;
   }
-}
 
-int main() {
-  // flags
-  SetConfigFlags(FLAG_MSAA_4X_HINT);
-
-  std::vector<std::string> image_path = {};
-
-  int width = 1920, height = 1080;
-  RaylibWrapper viewer(width, height, "3D Room Viewer");
-  auto const addImage = [&]() {
-    try {
-      auto filePath =
-          tinyfd_openFileDialog("Pick Image Path", ".", 0, NULL, NULL, 0);
-      if (!filePath || filePath == NULL) {
-      }
-      image_path.push_back(filePath);
-      recalculate(image_path, viewer);
-    } catch (...) {
-      // dont do anything here
-    }
-  };
-  viewer.init();
-  Toolbar::init(&viewer);
-  Toolbar toolbar(addImage);
   Vector2 center = Vector2{sumX / 4.0f, sumY / 4.0f};
 
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
+
   Vignette vignette(width, height);
 
   // lighting
@@ -108,12 +77,28 @@ int main() {
 
     BeginDrawing();
     ClearBackground(BLACK);
-    render_gloab_context(viewer, light, vignette);
+
+    viewer.update_camera();
+    light.UpdateLight(viewer.get_camera());
+
+    BeginMode3D(viewer.get_camera());
+    light.EnableShader();
+    RaylibWrapper::DrawFloor(viewer, floors);
+    EndShaderMode();
+    RaylibWrapper::DrawCeil(viewer, floors, floor_height);
+    EndMode3D();
+
+    vignette.EnableShader();
+    vignette.Draw(!viewer.cameras[viewer.camera_index].is_toggle_sniper);
+    vignette.DisableShader();
+
     rlImGuiBegin();
-    toolbar.render();
+    Toolbar::render();
     rlImGuiEnd();
+
     EndDrawing();
   }
+
   light.DisableShader();
   rlImGuiShutdown();
 

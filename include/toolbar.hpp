@@ -1,21 +1,17 @@
 #pragma once
-#include <functional>
 
 #include "raylibwrapper.hpp"
 enum Tool { NONE, DISTANCE_TOOL, CAMERA_TOOL, CLOCK_TOOL, ADD_CAMERA_TOOL };
 
 class Toolbar {
-  std::function<void()> addImage;
-
 public:
-  Toolbar(std::function<void()>);
   static RaylibWrapper *viewer;
   static int state;
   static bool isHidden;
 
   static void init(RaylibWrapper *viewer);
-  void render();
-  void render_toolbar();
+  static void render();
+  static void render_toolbar();
   static void render_distance_tool();
   static void render_camera_tool();
   static void render_add_camera_tool();
