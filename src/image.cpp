@@ -81,8 +81,10 @@ void CustImage::water_shed(std::vector<std::vector<cv::Point>> &contours) {
   cv::waitKey(0);
 }
 
-void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point2d>>& contours2d) {
+void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::vector<std::vector<cv::Point>>& windows, std::vector<std::vector<cv::Point2d>>& contours2d, std::vector<std::vector<cv::Point2d>>& windows2d) {
     contours2d.resize(contours.size());
+    windows2d.resize(windows.size());
+
     int xMax, yMax, xMin, yMin;
     xMax = yMax = 0;
     xMin = yMin = INT_MAX;
@@ -117,6 +119,14 @@ void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::ve
         }
     }
 
+    for (size_t i = 0; i < windows.size(); i ++) {
+        windows2d[i].resize(windows[i].size());
+        for (size_t j = 0; j < windows[i].size(); j ++) {
+            windows2d[i][j].x = (windows[i][j].x - xMin) * scale;
+            windows2d[i][j].y = (windows[i][j].y - yMin) * scale;
+        }
+    }
+
     auto computeMedian = [](std::vector<double>& values) -> double {
         std::sort(values.begin(), values.end());
         size_t size = values.size();
@@ -134,6 +144,13 @@ void CustImage::normalize(std::vector<std::vector<cv::Point>>& contours, std::ve
         for (size_t j = 0; j < contours2d[i].size(); ++j) {
             contours2d[i][j].x -= medianX;
             contours2d[i][j].y -= medianY;
+        }
+    }
+
+    for (size_t i = 0; i < windows2d.size(); ++i) {
+        for (size_t j = 0; j < windows2d[i].size(); ++j) {
+            windows2d[i][j].x -= medianX;
+            windows2d[i][j].y -= medianY;
         }
     }
 }

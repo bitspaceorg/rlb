@@ -29,16 +29,16 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   sumY = 0;
   IOHelper *io = new IOHelper();
   std::vector<std::vector<cv::Point>> contours, window_contours;
-  std::vector<std::vector<cv::Point2d>> contours2d, window_countours_2d;
+  std::vector<std::vector<cv::Point2d>> contours2d, window_contours2d;
   // TODO: fix multi api call
-  // walls
+
   io->read_image(temp, contours, 0);
-  CustImage::normalize(contours, contours2d);
-  floors.push_back(contours2d);
-  // window
   io->read_image(temp, window_contours, 1);
-  CustImage::normalize(window_contours, window_countours_2d);
-  floor_window.push_back(window_countours_2d);
+
+  CustImage::normalize(contours, window_contours, contours2d, window_contours2d);
+
+  floors.push_back(contours2d);
+  floor_window.push_back(window_contours2d);
 
   // rendering
   std::vector<cv::Point2d> input_2D;
