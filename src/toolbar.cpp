@@ -18,7 +18,7 @@ inline ImGuiWindowFlags WINDOW_FLAGS =
     ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
 void Toolbar::init(RaylibWrapper *initial_viewer,
-                   std::function<void(std::string)> func) {
+  std::function<void(std::vector<std::string>)> func) {
   viewer = initial_viewer;
   this->func = func;
 }
@@ -246,8 +246,15 @@ void Toolbar::render_toolbar() {
 
   if (ImGui::Button("Upload")) {
     auto name =
-        tinyfd_openFileDialog("Choose floor plan", "", 0, NULL, NULL, 0);
-    this->func(name);
+        tinyfd_openFileDialog("Choose floor plan", "", 0, NULL, NULL, 1);
+
+    std::stringstream ss(name);
+    std::string word;
+		std::vector<std::string> splits;
+    while (std::getline(ss, word, '|')) {
+			splits.push_back(word);
+    }
+    this->func(splits);
   }
 
   ImGui::PopStyleVar(2);

@@ -23,45 +23,45 @@ std::vector<std::vector<std::vector<cv::Point2d>>> floors;
 std::vector<std::vector<std::vector<cv::Point2d>>> floor_window;
 std::vector<std::string> image_path = {};
 
-void recalculate(const std::string &temp, RaylibWrapper &viewer) {
+void recalculate(RaylibWrapper &viewer) {
   floors.clear();
+  floor_window.clear();
   sumX = 0;
   sumY = 0;
   IOHelper *io = new IOHelper();
+
   std::vector<std::vector<cv::Point>> contours, window_contours;
   std::vector<std::vector<cv::Point2d>> contours2d, window_contours2d;
 
-  auto img = CustImage(imread(temp));
-  // io->read_image(temp, contours, 0);
-  img.water_shed(contours);
-  io->read_image(temp, window_contours, 1);
+  for (auto tmp : image_path) {
+    auto img = CustImage(imread(tmp));
+    // io->read_image(temp, contours, 0);
+    img.water_shed(contours);
+    io->read_image(tmp, window_contours, 1);
 
-  CustImage::normalize(contours, window_contours, contours2d,
-                       window_contours2d);
+    CustImage::normalize(contours, window_contours, contours2d,
+                         window_contours2d);
+    floors.push_back(contours2d);
+    floor_window.push_back(window_contours2d);
+    // rendering
+    std::vector<cv::Point2d> input_2D;
+    for (const auto &points : floors[0]) {
+      for (const auto &point : points) {
+        input_2D.push_back(point);
+      }
+      std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
+      for (const auto &point : boundary_ip) {
+        sumX += point.x;
+        sumY += point.y;
+      }
 
-  floors.push_back(contours2d);
-  floor_window.push_back(window_contours2d);
-
-  // rendering
-  std::vector<cv::Point2d> input_2D;
-  for (const auto &points : floors[0]) {
-    for (const auto &point : points) {
-      input_2D.push_back(point);
+      center = Vector2{sumX / 4.0f, sumY / 4.0f};
+      viewer.cameras.clear();
+      viewer.initialize_default_cam(center);
+      viewer.initialize_floor_cam(floor_height, floors.size());
     }
   }
-
-  std::vector<cv::Point2d> boundary_ip = viewer.get_bounding_box(input_2D);
-  for (const auto &point : boundary_ip) {
-    sumX += point.x;
-    sumY += point.y;
-  }
-
-  center = Vector2{sumX / 4.0f, sumY / 4.0f};
-  viewer.cameras.clear();
-  viewer.initialize_default_cam(center);
-  viewer.initialize_floor_cam(floor_height, floors.size());
 }
-
 void enter() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -70,7 +70,12 @@ void enter() {
   viewer.init();
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
-  auto addImage = [&](std::string path) { recalculate(path, viewer); };
+  auto addImage = [&](std::vector<std::string> path) {
+    for (auto p : path) {
+      image_path.push_back(p);
+    }
+    recalculate(viewer);
+  };
   Toolbar t;
   t.init(&viewer, addImage);
   Vignette vignette(width, height);

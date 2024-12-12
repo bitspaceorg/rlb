@@ -5,14 +5,15 @@ enum Tool { NONE, DISTANCE_TOOL, CAMERA_TOOL, CLOCK_TOOL, ADD_CAMERA_TOOL };
 
 class Toolbar {
 private:
-  std::function<void(std::string)> func;
+  std::function<void(std::vector<std::string>)> func;
 
 public:
   static RaylibWrapper *viewer;
   static int state;
   static bool isHidden;
 
-  void init(RaylibWrapper *viewer, std::function<void(std::string)>);
+  void init(RaylibWrapper *viewer,
+            std::function<void(std::vector<std::string>)>);
   void render();
   void render_toolbar();
   static void render_distance_tool();
