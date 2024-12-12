@@ -31,9 +31,8 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   IOHelper *io = new IOHelper();
   std::vector<std::vector<cv::Point>> contours, window_contours;
   std::vector<std::vector<cv::Point2d>> contours2d, window_contours2d;
-  // TODO: fix multi api call
 
-  auto img = CustImage(imread("../test_big.jpeg"));
+  auto img = CustImage(imread(temp));
   // io->read_image(temp, contours, 0);
   img.water_shed(contours);
   io->read_image(temp, window_contours, 1);

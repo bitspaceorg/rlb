@@ -58,7 +58,7 @@ public:
 
   Color colors[6] = {DARKGRAY, PINK, ORANGE, DARKBLUE, GREEN, GRAY};
   void render(const std::vector<std::vector<cv::Point2d>> &contours,
-              float &offset, const float &height, Color color);
+              float &offset, const float &height, Color color,bool isTexture=false);
   void render_base(const Vector2dVector &polygon, float y, Color color);
   void render_base_lines(const std::vector<cv::Point2d> &contours, float z,
                          Color color);

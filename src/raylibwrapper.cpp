@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
+#include "texture.hpp"
 #include "triangulate.hpp"
 #include <algorithm>
 #include <cmath>
@@ -110,11 +111,10 @@ BoundingBox RaylibWrapper::GetRotatedCubeBoundingBox(float x1, float y1,
 }
 void RaylibWrapper::render(
     const std::vector<std::vector<cv::Point2d>> &contours, float &offset,
-    const float &height, Color color) {
+    const float &height, Color color, bool isTexture) {
 
   for (const auto &points : contours) {
     for (size_t i = 0; i < points.size(); i++) {
-
       float x1 = points[i].x, y1 = points[i].y;
       float x2 = points[(i + 1) % points.size()].x,
             y2 = points[(i + 1) % points.size()].y;
@@ -125,11 +125,21 @@ void RaylibWrapper::render(
 
       float cubeHeight = height;
       float cubeWidth = segment_distance;
-
       rlPushMatrix();
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
-      DrawCube({cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight, 0.1f, color);
+      if (!isTexture) {
+        DrawCube({cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight, 0.1f,
+                 color);
+      } else {
+        TextureSingleton *ts = TextureSingleton::GetInstance();
+        Texture texture = ts->GetTexture();
+        DrawCubeTextureRec(texture,
+                           (Rectangle){0.0f, 0.0f, (float)texture.width,
+                                       (float)texture.height},
+                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight,
+                           0.1f, color);
+      }
       rlPopMatrix();
 
       BoundingBox cube_box =
@@ -455,10 +465,10 @@ void RaylibWrapper::DrawFloor(
     for (cv::Point2d i : boundary_ip)
       boundary.push_back(Vector2d(i.x, i.y));
     if (!isWindow) {
-      viewer.render_base(boundary, offset + 0.1, viewer.colors[0]);
-      viewer.render(contours2d, offset, 6.0f, viewer.colors[0]);
+      viewer.render_base(boundary, offset + 0.1, BEIGE);
+      viewer.render(contours2d, offset, 6.0f, GRAY);
     } else {
-      viewer.render(contours2d, offset, 6.0f, viewer.colors[1]);
+      viewer.render(contours2d, offset, 6.0f, GRAY, true);
     }
   }
 }
