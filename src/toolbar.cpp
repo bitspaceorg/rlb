@@ -54,6 +54,11 @@ void Toolbar::render() {
                         viewer->current_dimensions.y,
                         viewer->current_dimensions.z),
              Vector2{30, 50}, 20, 0, RED);
+  DrawTextEx(viewer->font,
+             TextFormat("Current Floor: %d", viewer->camera_index - 1 <= -1
+                                                 ? 0
+                                                 : viewer->camera_index - 1),
+             Vector2{30, 70}, 20, 0, RED);
 }
 
 void Toolbar::render_distance_tool() {
