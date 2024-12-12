@@ -110,8 +110,10 @@ BoundingBox RaylibWrapper::GetRotatedCubeBoundingBox(float x1, float y1,
 }
 void RaylibWrapper::render(
     const std::vector<std::vector<cv::Point2d>> &contours, float &offset,
-    const float &height, Color color, bool isTexture) {
+    const float &floor_idx, Color color, bool isTexture) {
 
+  int j = 0;
+  float mx_height = 0.0f;
   for (const auto &points : contours) {
     for (size_t i = 0; i < points.size(); i++) {
       float x1 = points[i].x, y1 = points[i].y;
@@ -122,8 +124,36 @@ void RaylibWrapper::render(
       Vector3 v1 = {x1, offset, y1}, v2 = {x2, offset, y2};
       float angle = angle_between_points(x1, y1, x2, y2);
 
-      float cubeHeight = height;
+      float cubeHeight = heights[floor_idx][j];
+      // float cubeHeight = 6.0f;
+      mx_height = std::max(mx_height, cubeHeight);
       float cubeWidth = segment_distance;
+      BoundingBox cube_box =
+          GetRotatedCubeBoundingBox(x1, y1, x2, y2, cubeHeight, offset - 3.0f);
+
+      Ray ray = {
+          .position = get_camera().position,
+          .direction = get_camera().target - get_camera().position,
+      };
+
+      RayCollision get_collision_ray = GetRayCollisionBox(ray, cube_box);
+
+      Color color_chk = color;
+
+      if (get_collision_ray.hit) {
+        distance_from_camera = get_collision_ray.distance;
+        current_dimensions = Vector3{cubeWidth, cubeHeight, 0.0f};
+        if (is_petrude) {
+          color_chk = RED;
+          if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) &&
+              (IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_LEFT_SHIFT))) {
+            heights[floor_idx][j] -= 1.0f;
+          } else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            heights[floor_idx][j] += 1.0f;
+          }
+        }
+      }
+
       rlPushMatrix();
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
@@ -135,31 +165,18 @@ void RaylibWrapper::render(
         DrawCubeTextureRec(texture,
                            (Rectangle){0.0f, 0.0f, (float)texture.width,
                                        (float)texture.height},
-                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth,
-                           cubeHeight, 0.1f, color);
+                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight,
+                           0.1f, color_chk);
       } else {
         TextureSingleton *ts = TextureSingleton::GetInstance();
         Texture texture = ts->GetTexture();
         DrawCubeTextureRec(texture,
                            (Rectangle){0.0f, 0.0f, (float)texture.width,
                                        (float)texture.height},
-                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth,
-                           cubeHeight, 0.1f, color);
+                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight,
+                           0.1f, color);
       }
       rlPopMatrix();
-
-      BoundingBox cube_box =
-          GetRotatedCubeBoundingBox(x1, y1, x2, y2, cubeHeight, offset - 3.0f);
-
-      Ray ray = {
-          .position = get_camera().position,
-          .direction = get_camera().target - get_camera().position,
-      };
-
-      RayCollision get_collision_ray = GetRayCollisionBox(ray, cube_box);
-
-      if (get_collision_ray.hit)
-        distance_from_camera = get_collision_ray.distance;
 
       // DrawBoundingBox(cube_box, RED);
 
@@ -167,9 +184,10 @@ void RaylibWrapper::render(
         get_camera().position = cameras[camera_index].prev_pos;
       }
     }
+    j++;
   }
 
-  offset += height;
+  offset += mx_height;
 }
 
 void RaylibWrapper::render_base_lines(const std::vector<cv::Point2d> &contours,
@@ -222,9 +240,10 @@ void RaylibWrapper::render_base(const Vector2dVector &contours, float y,
     DrawTriangle3D(Vector3{p1.GetX(), y, p1.GetY()},
                    Vector3{p2.GetX(), y, p2.GetY()},
                    Vector3{p3.GetX(), y, p3.GetY()}, color);
-    // printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n", i +
-    // 1,
-    //        p1.GetX(), p1.GetY(), p2.GetX(), p2.GetY(), p3.GetX(), p3.GetY());
+    // printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n", i
+    // + 1,
+    //        p1.GetX(), p1.GetY(), p2.GetX(), p2.GetY(), p3.GetX(),
+    //        p3.GetY());
   }
   // printf("\n");
 }
@@ -419,6 +438,8 @@ void RaylibWrapper::DrawFloor(
     std::vector<std::vector<std::vector<cv::Point2d>>> &floors, bool isWindow) {
   float offset = 0.0f;
 
+  int i = 0;
+
   for (const auto &contours2d : floors) {
 
     std::vector<cv::Point2d> input_2D;
@@ -472,10 +493,11 @@ void RaylibWrapper::DrawFloor(
       boundary.push_back(Vector2d(i.x, i.y));
     if (!isWindow) {
       viewer.render_base(boundary, offset + 0.1, BEIGE);
-      viewer.render(contours2d, offset, 6.0f, GRAY);
+      viewer.render(contours2d, offset, i, GRAY);
     } else {
-      viewer.render(contours2d, offset, 6.0f, GRAY, true);
+      viewer.render(contours2d, offset, i, GRAY, true);
     }
+    i++;
   }
 }
 
@@ -485,15 +507,19 @@ void RaylibWrapper::DrawCeil(
     const float &floor_height) {
 
   float offset = 0.0f;
-
+  int i = 0;
   for (const auto &floor : floors) {
     offset += floor_height;
+    int j = 0;
     for (auto &contour : floor) {
       Vector2dVector points_ip;
       for (cv::Point2d point : contour) {
         points_ip.push_back(Vector2d(point.x, point.y));
       }
-      viewer.render_base(points_ip, offset, viewer.colors[0]);
+      if (i == floors.size() - 1)
+        viewer.render_base(points_ip, offset, viewer.colors[0]);
+      j++;
     }
+    i++;
   }
 }

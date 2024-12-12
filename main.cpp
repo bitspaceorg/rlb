@@ -1,4 +1,5 @@
 // global shader declaration
+#include "stairsPoint.hpp"
 #define GLSL_VERSION 330
 
 #include "api.hpp"
@@ -60,8 +61,20 @@ void recalculate(RaylibWrapper &viewer) {
       viewer.initialize_default_cam(center);
       viewer.initialize_floor_cam(floor_height, floors.size());
     }
+
+    viewer.heights.clear();
+
+    std::vector<std::vector<float>> heights(floors.size(),
+                                            std::vector<float>());
+    for (int i = 0; i < floors.size(); i++) {
+      for (int j = 0; j < floors[i].size(); j++) {
+        heights[i].push_back(floor_height);
+      }
+    }
+    viewer.heights = heights;
   }
 }
+
 void enter() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -73,6 +86,7 @@ void enter() {
   auto addImage = [&](std::vector<std::string> path) {
     for (auto p : path) {
       image_path.push_back(p);
+      cout << p << "\n";
     }
     recalculate(viewer);
   };
@@ -88,6 +102,9 @@ void enter() {
 
   BoundingBox object = {(Vector3){-1.0f, 0.0f, -1.0f},
                         (Vector3){1.0f, 2.0f, 1.0f}};
+
+  SphereSystem stairs(0.1f, &viewer);
+
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
                           viewer.get_camera().position.y,
@@ -103,8 +120,11 @@ void enter() {
 
     BeginMode3D(viewer.get_camera());
     light.EnableShader();
+
+    stairs.Update();
     RaylibWrapper::DrawFloor(viewer, floors);
     RaylibWrapper::DrawFloor(viewer, floor_window, true);
+    stairs.Draw();
     EndShaderMode();
     RaylibWrapper::DrawCeil(viewer, floors, floor_height);
     light.EnableDebug();
