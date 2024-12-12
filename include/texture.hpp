@@ -8,6 +8,7 @@ class TextureSingleton {
 private:
   static TextureSingleton *instance;
   Texture2D texture;
+	Texture2D brickTexture;
 
   TextureSingleton();
 
@@ -18,6 +19,9 @@ public:
   static TextureSingleton *GetInstance();
 
   Texture2D GetTexture() const;
+	
+  Texture2D GetTextureWall() const;
+
 
   ~TextureSingleton();
 };

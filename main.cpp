@@ -4,7 +4,6 @@
 #include "api.hpp"
 #include "image.hpp"
 #include "io.hpp"
-#include "iostream"
 #include "lights.hpp"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
@@ -72,16 +71,16 @@ void enter() {
 
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
+	
+  recalculate("../test_big_4.jpeg", viewer);
 
-  recalculate("../test_big.jpeg", viewer);
   Vignette vignette(width, height);
 
   // lighting
   LightLoader light = LightLoader(2, GLSL_VERSION);
   light.ShaderInit();
-  light.InitializeLights(0, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
-  light.InitializeLights(1, (Vector3){-1, 3, 45}, Vector3Zero(), WHITE);
-
+  light.InitializeLights(1, (Vector3){0, 0, 0}, Vector3Zero(), WHITE);
+  light.InitializeLights(1, (Vector3){-3, 3, 55}, Vector3Zero(), WHITE);
   rlImGuiSetup(true);
 
   BoundingBox object = {(Vector3){-1.0f, 0.0f, -1.0f},
@@ -106,6 +105,7 @@ void enter() {
     RaylibWrapper::DrawFloor(viewer, floor_window, true);
     EndShaderMode();
     RaylibWrapper::DrawCeil(viewer, floors, floor_height);
+		light.EnableDebug();
     EndMode3D();
 
     vignette.EnableShader();

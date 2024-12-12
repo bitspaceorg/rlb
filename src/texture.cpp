@@ -85,6 +85,7 @@ TextureSingleton* TextureSingleton::instance = nullptr;
 
 TextureSingleton::TextureSingleton() {
     texture = LoadTexture("../resource/window_texture.jpg"); 
+    brickTexture = LoadTexture("../resource/wall_texture.jpg"); 
 }
 
 TextureSingleton* TextureSingleton::GetInstance() {
@@ -97,7 +98,11 @@ TextureSingleton* TextureSingleton::GetInstance() {
 Texture2D TextureSingleton::GetTexture() const {
     return texture;
 }
+Texture2D TextureSingleton::GetTextureWall() const {
+    return brickTexture;
+}
 
 TextureSingleton::~TextureSingleton() {
     UnloadTexture(texture);
+		UnloadTexture(brickTexture);
 }

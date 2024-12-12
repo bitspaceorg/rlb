@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
+#include "tinyfiledialogs.h"
 #include <iostream>
 
 int Toolbar::state = Tool::NONE;
@@ -236,6 +237,11 @@ void Toolbar::render_toolbar() {
                         ImGuiSelectableFlags_None, ImVec2(40 - 12, 40))) {
     Toolbar::state =
         Toolbar::state == Tool::CLOCK_TOOL ? Tool::NONE : Tool::CLOCK_TOOL;
+  }
+
+  if (ImGui::Button("Upload")) {
+    auto name =
+        tinyfd_openFileDialog("Choose floor plan", "", 0, NULL, NULL, 0);
   }
 
   ImGui::PopStyleVar(2);

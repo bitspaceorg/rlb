@@ -7,7 +7,6 @@
 #include "triangulate.hpp"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 RaylibWrapper::RaylibWrapper(int width, int height, const std::string &title)
     : window_width(width), window_height(height), window_title(title) {}
@@ -57,7 +56,7 @@ void RaylibWrapper::initialize_floor_cam(const float &height,
      * First Person
      * NOTE: customize the initial points of the floor
      */
-    add_camera(Vector3{-8.0f, offset + 1.0f, -14.0f},
+    add_camera(Vector3{-5.0f, offset + 1.0f, -14.0f},
                Vector3{2.5f, offset + 1.0f, 2.5f}, 45.0f, CAMERA_PERSPECTIVE,
                CAMERA_FIRST_PERSON);
     offset += height;
@@ -129,16 +128,23 @@ void RaylibWrapper::render(
       rlTranslatef(v1.x, v1.y, v1.z);
       rlRotatef(angle, 0, 1, 0);
       if (!isTexture) {
-        DrawCube({cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight, 0.1f,
-                 color);
+        /*DrawCube({cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight, 0.1f,*/
+        /*         customColor);*/
+        TextureSingleton *ts = TextureSingleton::GetInstance();
+        Texture texture = ts->GetTextureWall();
+        DrawCubeTextureRec(texture,
+                           (Rectangle){0.0f, 0.0f, (float)texture.width,
+                                       (float)texture.height},
+                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth,
+                           cubeHeight, 0.1f, color);
       } else {
         TextureSingleton *ts = TextureSingleton::GetInstance();
         Texture texture = ts->GetTexture();
         DrawCubeTextureRec(texture,
                            (Rectangle){0.0f, 0.0f, (float)texture.width,
                                        (float)texture.height},
-                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth, cubeHeight,
-                           0.1f, color);
+                           {cubeWidth / 2, 0.0f, 0.0f}, cubeWidth,
+                           cubeHeight, 0.1f, color);
       }
       rlPopMatrix();
 
