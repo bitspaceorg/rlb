@@ -36,7 +36,8 @@ void recalculate(const std::string &temp, RaylibWrapper &viewer) {
   img.water_shed(contours);
   io->read_image(temp, window_contours, 1);
 
-  CustImage::normalize(contours, window_contours, contours2d, window_contours2d);
+  CustImage::normalize(contours, window_contours, contours2d,
+                       window_contours2d);
 
   floors.push_back(contours2d);
   floor_window.push_back(window_contours2d);
@@ -65,17 +66,14 @@ void enter() {
   // flags
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-  RaylibWrapper viewer(width, height, "3D Room Viewer");
+  RaylibWrapper viewer(width, height, "sugoi");
   viewer.init();
-  Toolbar::init(&viewer);
-
   viewer.initialize_default_cam(center);
   viewer.initialize_floor_cam(floor_height, floors.size());
-	
-  recalculate("../test_big_4.jpeg", viewer);
-
+  auto addImage = [&](std::string path) { recalculate(path, viewer); };
+  Toolbar t;
+  t.init(&viewer, addImage);
   Vignette vignette(width, height);
-
   // lighting
   LightLoader light = LightLoader(2, GLSL_VERSION);
   light.ShaderInit();
@@ -85,7 +83,6 @@ void enter() {
 
   BoundingBox object = {(Vector3){-1.0f, 0.0f, -1.0f},
                         (Vector3){1.0f, 2.0f, 1.0f}};
-
   while (!WindowShouldClose()) {
     float cameraPos[3] = {viewer.get_camera().position.x,
                           viewer.get_camera().position.y,
@@ -105,7 +102,7 @@ void enter() {
     RaylibWrapper::DrawFloor(viewer, floor_window, true);
     EndShaderMode();
     RaylibWrapper::DrawCeil(viewer, floors, floor_height);
-		light.EnableDebug();
+    light.EnableDebug();
     EndMode3D();
 
     vignette.EnableShader();
@@ -113,12 +110,11 @@ void enter() {
     vignette.DisableShader();
 
     rlImGuiBegin();
-    Toolbar::render();
+    t.render();
     rlImGuiEnd();
 
     EndDrawing();
   }
-
   light.DisableShader();
   rlImGuiShutdown();
 }

@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raylibwrapper.hpp"
 #include "tinyfiledialogs.h"
+#include <functional>
 #include <iostream>
 
 int Toolbar::state = Tool::NONE;
@@ -16,7 +17,11 @@ inline ImGuiWindowFlags WINDOW_FLAGS =
     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
     ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-void Toolbar::init(RaylibWrapper *initial_viewer) { viewer = initial_viewer; }
+void Toolbar::init(RaylibWrapper *initial_viewer,
+                   std::function<void(std::string)> func) {
+  viewer = initial_viewer;
+  this->func = func;
+}
 
 void Toolbar::render() {
   if (isHidden && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -242,6 +247,7 @@ void Toolbar::render_toolbar() {
   if (ImGui::Button("Upload")) {
     auto name =
         tinyfd_openFileDialog("Choose floor plan", "", 0, NULL, NULL, 0);
+    this->func(name);
   }
 
   ImGui::PopStyleVar(2);
