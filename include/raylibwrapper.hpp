@@ -12,6 +12,7 @@ private:
   int window_width;
   int window_height;
   std::string window_title;
+  Color customColor = Color{140, 155, 164};
 
   float distance(float x1, float y1, float x2, float y2);
   Vector2 GetPolygonCenter(const std::vector<Vector2> &points);
@@ -25,16 +26,23 @@ public:
   std::vector<CameraRay> cameras;
   int camera_index = 0;
 
+  bool is_petrude = 0;
+  std::vector<std::vector<float>> heights;
+
+  bool is_add_stair_points = 0;
+
   Font font;
 
   float distance_from_camera = 0.0f;
+  Vector3 current_dimensions = Vector3{0.0f, 0.0f, 0.0f};
 
   void init();
 
   static void listen(RaylibWrapper &viewer, const int &floor_count);
   static void
   DrawFloor(RaylibWrapper &viewer,
-            std::vector<std::vector<std::vector<cv::Point2d>>> &floors);
+            std::vector<std::vector<std::vector<cv::Point2d>>> &floors,
+            bool isWindow = false);
   static void
   DrawCeil(RaylibWrapper &viewer,
            std::vector<std::vector<std::vector<cv::Point2d>>> &floors,
@@ -57,7 +65,8 @@ public:
 
   Color colors[6] = {DARKGRAY, PINK, ORANGE, DARKBLUE, GREEN, GRAY};
   void render(const std::vector<std::vector<cv::Point2d>> &contours,
-              float &offset, const float &height, Color color);
+              float &offset, const float &floor_idx, Color color,
+              bool isTexture = false);
   void render_base(const Vector2dVector &polygon, float y, Color color);
   void render_base_lines(const std::vector<cv::Point2d> &contours, float z,
                          Color color);

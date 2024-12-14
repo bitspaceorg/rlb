@@ -2,11 +2,15 @@
 #include "imgui.h"
 #include "raylib.h"
 #include "raylibwrapper.hpp"
+#include "tinyfiledialogs.h"
+#include <functional>
 #include <iostream>
 
 int Toolbar::state = Tool::NONE;
 RaylibWrapper *Toolbar::viewer = nullptr;
 bool Toolbar::isHidden = 0;
+bool Toolbar::isToggleEdit = 0;
+bool Toolbar::isAddStairPoints = 0;
 static bool isAdjusted = 0;
 
 inline ImGuiWindowFlags WINDOW_FLAGS =
@@ -15,7 +19,11 @@ inline ImGuiWindowFlags WINDOW_FLAGS =
     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
     ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-void Toolbar::init(RaylibWrapper *initial_viewer) { viewer = initial_viewer; }
+void Toolbar::init(RaylibWrapper *initial_viewer,
+                   std::function<void(std::vector<std::string>)> func) {
+  viewer = initial_viewer;
+  this->func = func;
+}
 
 void Toolbar::render() {
   if (isHidden && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -39,7 +47,18 @@ void Toolbar::render() {
   DrawTextEx(viewer->font,
              TextFormat("DISTANCE FROM THE CAMERA TO THE TARGET: %08f",
                         viewer->distance_from_camera * 3.28084),
-             Vector2{200, 80}, 20, 0, RED);
+             Vector2{30, 30}, 20, 0, RED);
+
+  DrawTextEx(viewer->font,
+             TextFormat("%f x %f x %f", viewer->current_dimensions.x,
+                        viewer->current_dimensions.y,
+                        viewer->current_dimensions.z),
+             Vector2{30, 50}, 20, 0, RED);
+  DrawTextEx(viewer->font,
+             TextFormat("Current Floor: %d", viewer->camera_index - 1 <= -1
+                                                 ? 0
+                                                 : viewer->camera_index - 1),
+             Vector2{30, 70}, 20, 0, RED);
 }
 
 void Toolbar::render_distance_tool() {
@@ -236,6 +255,30 @@ void Toolbar::render_toolbar() {
                         ImGuiSelectableFlags_None, ImVec2(40 - 12, 40))) {
     Toolbar::state =
         Toolbar::state == Tool::CLOCK_TOOL ? Tool::NONE : Tool::CLOCK_TOOL;
+  }
+
+  if (ImGui::Button("Upload")) {
+    auto name =
+        tinyfd_openFileDialog("Choose floor plan", "", 0, NULL, NULL, 1);
+
+    std::stringstream ss(name);
+    std::string word;
+    std::vector<std::string> splits;
+    while (std::getline(ss, word, '|')) {
+      splits.push_back(word);
+    }
+    this->func(splits);
+  }
+  if (ImGui::Selectable("Edit height", isToggleEdit, ImGuiSelectableFlags_None,
+                        ImVec2())) {
+    isToggleEdit = !isToggleEdit;
+    viewer->is_petrude = isToggleEdit;
+  }
+
+  if (ImGui::Selectable("Add stair points", isAddStairPoints,
+                        ImGuiSelectableFlags_None, ImVec2())) {
+    isAddStairPoints = !isAddStairPoints;
+    viewer->is_add_stair_points = isAddStairPoints;
   }
 
   ImGui::PopStyleVar(2);
